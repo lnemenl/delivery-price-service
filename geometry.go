@@ -7,10 +7,7 @@ type Location struct {
 	Lon float64 // Longitude
 }
 
-// Function to calculate distance.
-// We are NOT using pointers here. Why?
-// Because 'Location' is just two small numbers.
-// It's cheaper to just copy them than to deal with addresses.
+// Function to calculate distance
 func CalculateDistance(p1 Location, p2 Location) int64 {
 	// 1. Convert degrees to radians (Math requires radians)
 	// We multiply by Pi and divide by 180.
@@ -19,8 +16,7 @@ func CalculateDistance(p1 Location, p2 Location) int64 {
 	lat2 := p2.Lat * math.Pi / 180
 	lon2 := p2.Lon * math.Pi / 180
 
-	// 2. The Haversine Formula (Don't memorize this, it's just standard math)
-	// It calculates distance on a sphere (Earth).
+	// 2. The Haversine Formula. It calculates distance on a sphere (Earth)
 	dLat := lat2 - lat1
 	dLon := lon2 - lon1
 
