@@ -1,3 +1,3 @@
-module wolt-project
+module github.com/lnemenl/wolt_1
 
 go 1.25.5

@@ -20,6 +20,7 @@ func TestCalculateDistance(t *testing.T) {
 	expectedMin := int64(3800)
 	expectedMax := int64(4000)
 
+	t.Logf("Set Min: %d Max: %d result: %d", expectedMin, expectedMax, result)
 	if result < expectedMin || result > expectedMax {
 		t.Errorf("Expected distance between 3800m and 4000m, but got %d", result)
 	}
