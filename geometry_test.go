@@ -1,13 +1,17 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/lnemenl/wolt_1/internal/core/domain"
+)
 
 func TestCalculateDistance(t *testing.T) {
 	// 1. Preparing the input
 	// Railway Station
-	station := Location{Lat: 60.171, Lon: 24.941}
+	station := domain.Location{Lat: 60.171, Lon: 24.941}
 	// Suomenlinna Island
-	island := Location{Lat: 60.144, Lon: 24.984}
+	island := domain.Location{Lat: 60.144, Lon: 24.984}
 
 	// 2. ACT
 	result := CalculateDistance(station, island)

@@ -1,14 +1,13 @@
 package main
 
-import "math"
+import (
+	"math"
 
-type Location struct {
-	Lat float64 // Latitude
-	Lon float64 // Longitude
-}
+	"github.com/lnemenl/wolt_1/internal/core/domain"
+)
 
 // Function to calculate distance
-func CalculateDistance(p1 Location, p2 Location) int64 {
+func CalculateDistance(p1 domain.Location, p2 domain.Location) int64 {
 	// 1. Convert degrees to radians (Math requires radians)
 	// We multiply by Pi and divide by 180.
 	lat1 := p1.Lat * math.Pi / 180

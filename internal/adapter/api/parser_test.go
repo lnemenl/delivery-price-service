@@ -9,7 +9,7 @@ import (
 
 func TestParseVenueJSON(t *testing.T) {
 
-	// 1.Arranging (Fake Wolt response)
+	// 1. Arranging (Fake Wolt response)
 	mockJSON := `
 	{
 		"venue_raw": {
@@ -20,10 +20,14 @@ func TestParseVenueJSON(t *testing.T) {
 	}
 	`
 
-	// 2.Acting
+	// 2. Acting
+	// CREATE THE EMPTY BUCKET
 	var result api.VenueInfo
+
+	// FILL THE BUCKET
 	err := json.Unmarshal([]byte(mockJSON), &result)
 
+	// CHECK FOR SPILLS
 	if err != nil {
 		t.Fatalf("Parser crashed: %v", err)
 	}

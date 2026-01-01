@@ -3,21 +3,14 @@ package main
 import (
 	"errors"
 	"math"
-)
 
-// 1. Define the Rule
-// This struct matches the JSON object Wolt gives
-type DistanceRange struct {
-	Min int64
-	Max int64
-	A   int64   // Fixed amount to add
-	B   float64 // Multiplier
-}
+	"github.com/lnemenl/wolt_1/internal/core/domain"
+)
 
 // 2. The Calculation Function
 // We take the distance (from our Geometry file) and the list of rules (Slice)
 // '[]DistanceRange' -> This means "A slice of DistanceRange objects"
-func CalculateDeliveryFee(distance int64, ranges []DistanceRange) (int64, error) {
+func CalculateDeliveryFee(distance int64, ranges []domain.DistanceRange) (int64, error) {
 
 	// We loop through the slice using 'range'
 	// 'i' is the index (0, 1, 2...) which we don't need, so we use '_' to ignore it

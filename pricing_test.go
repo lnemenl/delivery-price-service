@@ -1,11 +1,15 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/lnemenl/wolt_1/internal/core/domain"
+)
 
 func TestCalculateDeliveryFee(t *testing.T) {
 	// 1. PREPARE (The Rules)
 	// This is a "Slice Literal". We create the slice and fill it at the same time.
-	woltRules := []DistanceRange{
+	woltRules := []domain.DistanceRange{
 		// 0 to 500m: Free variable fee
 		{Min: 0, Max: 500, A: 0, B: 0},
 		// 500 to 1000m: 100 cents + (1 * dist / 10)
