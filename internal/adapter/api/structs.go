@@ -8,6 +8,6 @@ type VenueLocation struct {
 	Location VenueCoordinates `json:"location"`
 }
 
-type VenueInfo struct {
+type StaticResponse struct {
 	VanueRaw VenueLocation `json:"venue_raw"`
 }

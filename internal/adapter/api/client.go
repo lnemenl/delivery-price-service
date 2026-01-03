@@ -23,7 +23,7 @@ func FetchVenueLocation(baseURL string, slug string) (domain.Location, error) {
 		return domain.Location{}, fmt.Errorf("server error: %d", resp.StatusCode)
 	}
 
-	var result VenueInfo
+	var result StaticResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 

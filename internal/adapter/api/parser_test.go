@@ -22,7 +22,7 @@ func TestParseVenueJSON(t *testing.T) {
 
 	// 2. Acting
 	// CREATE THE EMPTY BUCKET
-	var result api.VenueInfo
+	var result api.StaticResponse
 
 	// FILL THE BUCKET
 	err := json.Unmarshal([]byte(mockJSON), &result)

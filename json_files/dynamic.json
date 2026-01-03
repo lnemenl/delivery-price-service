@@ -1,0 +1,418 @@
+{
+    "venue": {
+        "delivery_open_status": {
+            "value": "Open all day",
+            "style": {
+                "icon": null,
+                "type": "OPEN"
+            },
+            "is_open": true,
+            "now": "2026-01-04T00:00:01.847940+02:00",
+            "previous_open": null,
+            "next_open": null,
+            "next_close": null,
+            "next_close_time_localized": null
+        },
+        "id": "66fe419cd46e8b9f53fd6e5c",
+        "open_status": {
+            "value": "Open all day",
+            "style": {
+                "icon": null,
+                "type": "OPEN"
+            },
+            "is_open": true,
+            "now": "2026-01-04T00:00:01.847940+02:00",
+            "previous_open": null,
+            "next_open": null,
+            "next_close": null,
+            "next_close_time_localized": null
+        },
+        "online": true,
+        "time_slots_schedule": null,
+        "banners": [],
+        "header": {
+            "delivery_method_default": "UNAVAILABLE",
+            "delivery_method_statuses": [
+                {
+                    "delivery_method": "UNAVAILABLE",
+                    "metadata": [
+                        {
+                            "type": "STRING",
+                            "link": null,
+                            "icon": null,
+                            "style": "NORMAL",
+                            "value": "Open all day"
+                        },
+                        {
+                            "type": "STRING",
+                            "link": null,
+                            "icon": null,
+                            "style": "NORMAL",
+                            "value": "Min. order €10.00"
+                        }
+                    ],
+                    "call_to_action": {
+                        "icon": "LOCATION",
+                        "style": "NO_FILL",
+                        "enabled": true,
+                        "configurable": false,
+                        "value": "Choose location"
+                    },
+                    "group_order_button": {
+                        "enabled": false,
+                        "visible": false
+                    },
+                    "notification": null,
+                    "disclaimer": null
+                }
+            ],
+            "product_return": null
+        },
+        "delivery_configs": [
+            {
+                "label": "Standard",
+                "description": null,
+                "tag": null,
+                "method": "homedelivery",
+                "schedule": "standard",
+                "estimate": {
+                    "label": "30-40 min",
+                    "min": 30,
+                    "mean": 30,
+                    "max": 40
+                },
+                "price": null,
+                "tso_schedule": null,
+                "info_banner": null
+            },
+            {
+                "label": "Standard",
+                "description": null,
+                "tag": null,
+                "method": "takeaway",
+                "schedule": "standard",
+                "estimate": {
+                    "label": "10-30 min",
+                    "min": 10,
+                    "mean": 20,
+                    "max": 30
+                },
+                "price": null,
+                "tso_schedule": null,
+                "info_banner": null
+            }
+        ],
+        "show_wolt_plus": false,
+        "enable_split_payment_v2": false,
+        "is_split_payments_v2_credits_enabled": false,
+        "offer_assistant": {
+            "offer_summary": {
+                "title_color": {
+                    "light": "#FFFFFF",
+                    "dark": "#FFFFFF",
+                    "high_contrast_light": null,
+                    "high_contrast_dark": null
+                },
+                "background_color": {
+                    "light": "#202125",
+                    "dark": "#333333",
+                    "high_contrast_light": null,
+                    "high_contrast_dark": null
+                },
+                "applied_title_color": {
+                    "light": "#FFFFFF",
+                    "dark": "#FFFFFF",
+                    "high_contrast_light": null,
+                    "high_contrast_dark": null
+                },
+                "applied_background_color": {
+                    "light": "#1FC70A",
+                    "dark": "#1FC70A",
+                    "high_contrast_light": null,
+                    "high_contrast_dark": null
+                }
+            },
+            "offer_trackers": []
+        }
+    },
+    "venue_raw": {
+        "id": "66fe419cd46e8b9f53fd6e5c",
+        "favourite": false,
+        "preestimate_total": {
+            "min": 30,
+            "max": 40,
+            "mean": 30
+        },
+        "preestimate_preparation": {
+            "min": 10,
+            "max": 30,
+            "mean": 20
+        },
+        "alive": true,
+        "applepay_callback_flow_enabled": false,
+        "googlepay_callback_flow_enabled": false,
+        "discounts": [],
+        "surcharges": [],
+        "delivery_specs": {
+            "delivery_enabled": true,
+            "order_minimum_no_surcharge": 1000,
+            "order_minimum_possible": 0,
+            "delivery_times": {
+                "monday": [
+                    {
+                        "type": "open",
+                        "value": 0
+                    }
+                ],
+                "tuesday": null,
+                "wednesday": null,
+                "thursday": null,
+                "friday": null,
+                "saturday": null,
+                "sunday": [
+                    {
+                        "type": "close",
+                        "value": 86400
+                    }
+                ]
+            },
+            "original_delivery_price": 190,
+            "delivery_pricing": {
+                "base_price": 190,
+                "price_ranges": [
+                    {
+                        "min": 0,
+                        "max": 1000,
+                        "a": 1000,
+                        "b": -1,
+                        "flag": null,
+                        "custom_distance_ranges": null
+                    },
+                    {
+                        "min": 1000,
+                        "max": 0,
+                        "a": 0,
+                        "b": 0,
+                        "flag": null,
+                        "custom_distance_ranges": null
+                    }
+                ],
+                "distance_ranges": [
+                    {
+                        "min": 0,
+                        "max": 500,
+                        "a": 0,
+                        "b": 0,
+                        "flag": null
+                    },
+                    {
+                        "min": 500,
+                        "max": 1000,
+                        "a": 100,
+                        "b": 0,
+                        "flag": null
+                    },
+                    {
+                        "min": 1000,
+                        "max": 1500,
+                        "a": 200,
+                        "b": 0,
+                        "flag": null
+                    },
+                    {
+                        "min": 1500,
+                        "max": 2000,
+                        "a": 200,
+                        "b": 1,
+                        "flag": null
+                    },
+                    {
+                        "min": 2000,
+                        "max": 0,
+                        "a": 0,
+                        "b": 0,
+                        "flag": null
+                    }
+                ],
+                "meta": {
+                    "subscription_minimum_basket": null,
+                    "subscription_max_distance": null,
+                    "subscription_plan_id": null
+                }
+            },
+            "delivery_pricing_with_subscription": null,
+            "delivery_pricing_without_subscription": null,
+            "geo_range": {
+                "bbox": null,
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            24.6734393541537,
+                            60.0426930237115
+                        ],
+                        [
+                            24.6283976297931,
+                            60.0698549263348
+                        ],
+                        [
+                            24.5947708065435,
+                            60.1008710579152
+                        ],
+                        [
+                            24.573874892501,
+                            60.1345585871764
+                        ],
+                        [
+                            24.5665489262058,
+                            60.1696290759248
+                        ],
+                        [
+                            24.5731173470931,
+                            60.2047370412785
+                        ],
+                        [
+                            24.5933710345593,
+                            60.238531295583
+                        ],
+                        [
+                            24.6265687188521,
+                            60.269707154417
+                        ],
+                        [
+                            24.671459728777,
+                            60.2970574711704
+                        ],
+                        [
+                            24.7263281076261,
+                            60.3195204059095
+                        ],
+                        [
+                            24.78905704552,
+                            60.3362218839388
+                        ],
+                        [
+                            24.8572114210374,
+                            60.3465108571135
+                        ],
+                        [
+                            24.92813512,
+                            60.3499857511838
+                        ],
+                        [
+                            24.9990588189626,
+                            60.3465108571135
+                        ],
+                        [
+                            25.06721319448,
+                            60.3362218839388
+                        ],
+                        [
+                            25.1299421323739,
+                            60.3195204059095
+                        ],
+                        [
+                            25.184810511223,
+                            60.2970574711704
+                        ],
+                        [
+                            25.2297015211479,
+                            60.269707154417
+                        ],
+                        [
+                            25.2628992054407,
+                            60.238531295583
+                        ],
+                        [
+                            25.2831528929069,
+                            60.2047370412785
+                        ],
+                        [
+                            25.2894693454678,
+                            60.1709758372586
+                        ],
+                        [
+                            25.1772688854267,
+                            60.1032084061598
+                        ],
+                        [
+                            24.6761654198424,
+                            60.0415832953636
+                        ],
+                        [
+                            24.6734393541537,
+                            60.0426930237115
+                        ]
+                    ]
+                ]
+            },
+            "subscription": {
+                "active_plan_id": null,
+                "available_plan_id": null
+            }
+        },
+        "self_delivery": false,
+        "preorder_config": null,
+        "payment_method_restrictions": null,
+        "discounts_restrictions_text": "The following categories are excluded from offers: beer, wine, alcohol, tobacco, nicotine products, smokers items and accessories, medicine, baby formula, newspaper, magazines and lottery scratchcards",
+        "credits_restrictions_text": "Wolt credits can't be used for purchasing beer, wine, alcohol, tobacco, nicotine products, smokers items and accessories, baby formula and lottery scratchcards.",
+        "preorder_specs": {
+            "preorder_only": false,
+            "time_step": 5,
+            "homedelivery_spec": {
+                "earliest_timedelta": 60,
+                "latest_timedelta": 8,
+                "preorder_times": {
+                    "monday": [
+                        {
+                            "type": "open",
+                            "value": 0
+                        }
+                    ],
+                    "tuesday": null,
+                    "wednesday": null,
+                    "thursday": null,
+                    "friday": null,
+                    "saturday": null,
+                    "sunday": [
+                        {
+                            "type": "close",
+                            "value": 86400
+                        }
+                    ]
+                }
+            },
+            "takeaway_spec": {
+                "earliest_timedelta": 40,
+                "latest_timedelta": 8,
+                "preorder_times": {
+                    "monday": [
+                        {
+                            "type": "open",
+                            "value": 0
+                        }
+                    ],
+                    "tuesday": null,
+                    "wednesday": null,
+                    "thursday": null,
+                    "friday": null,
+                    "saturday": null,
+                    "sunday": [
+                        {
+                            "type": "close",
+                            "value": 86400
+                        }
+                    ]
+                }
+            },
+            "eatin_spec": null
+        },
+        "group_order_id": ""
+    },
+    "is_venue_favourite": false,
+    "order_status": {
+        "value": ""
+    },
+    "order_minimum": 1000,
+    "do_use_backend_pricing": "no"
+}
