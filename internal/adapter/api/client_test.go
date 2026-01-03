@@ -4,11 +4,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/lnemenl/wolt_1/internal/adapter/api"
+	"github.com/lnemenl/wolt_1/internal/core/domain"
 )
 
 func TestFetchVenueLocation(t *testing.T) {
 	// 1. Aranging
-	// Create a server. The function inside decides what the server says back
+	// Creating a server. The function inside decides what the server says back
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Safety Check: Did our client ask for the right URL?
@@ -22,7 +25,7 @@ func TestFetchVenueLocation(t *testing.T) {
 		// Return 200 OK
 		w.WriteHeader(http.StatusOK)
 
-		// Return the JSON (The same simple one we verified in parser_test.go)
+		// Return the JSON
 		w.Write([]byte(`{
             "venue_raw": {
                 "location": {
@@ -34,4 +37,18 @@ func TestFetchVenueLocation(t *testing.T) {
 	// Close the server when the test finishes, or it keeps running
 	defer mockServer.Close()
 
+	location, err := api.FetchVenueLocation(mockServer.URL, "test-venue")
+
+	if err != nil {
+		t.Fatalf("Expected success, but got error: %v", err)
+	}
+
+	expectedLocation := domain.Location{
+		Lat: 60.17,
+		Lon: 24.93,
+	}
+
+	if location != expectedLocation {
+		t.Errorf("Data mismatch. Expected %+v, got %+v", expectedLocation, location)
+	}
 }
