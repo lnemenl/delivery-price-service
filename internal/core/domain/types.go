@@ -13,3 +13,9 @@ type DistanceRange struct {
 	A   int64
 	B   float64
 }
+
+// DeliveryData holds all the dynamic pricing information
+type DeliveryData struct {
+	PricingRules      []DistanceRange
+	SmallOrderMinimum int64
+}

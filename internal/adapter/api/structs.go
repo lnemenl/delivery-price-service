@@ -9,10 +9,10 @@ type StaticResponse struct {
 }
 
 type VenueRawStatic struct {
-	Location VenueLocation `json:"location"`
+	Location Location `json:"location"`
 }
 
-type VenueLocation struct {
+type Location struct {
 	Coordinates []float64 `json:"coordinates"`
 }
 
@@ -29,7 +29,8 @@ type VenueRawDynamic struct {
 }
 
 type DeliverySpecs struct {
-	DeliveryPricing DeliveryPricing `json:"delivery_pricing"`
+	OrderMinimumNoSurcharge int64           `json:"order_minimum_no_surcharge"`
+	DeliveryPricing         DeliveryPricing `json:"delivery_pricing"`
 }
 
 type DeliveryPricing struct {

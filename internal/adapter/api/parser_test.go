@@ -10,15 +10,7 @@ import (
 func TestParseVenueJSON(t *testing.T) {
 
 	// 1. Arranging (Fake Wolt response)
-	mockJSON := `
-	{
-		"venue_raw": {
-			"location": {
-				"coordinates": [24.93, 60.17]
-			}
-		}
-	}
-	`
+	mockJSON := `{"venue_raw": {"location": {"coordinates": [24.93, 60.17]}}}`
 
 	// 2. Acting
 	// CREATE THE EMPTY BUCKET

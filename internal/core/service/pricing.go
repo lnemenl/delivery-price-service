@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"errors"
@@ -39,4 +39,17 @@ func CalculateDeliveryFee(distance int64, ranges []domain.DistanceRange) (int64,
 	}
 	// in case we finish the loop and find nothing
 	return 0, errors.New("No matching price rule found")
+}
+
+// CalculateSmallOrderSurcharge determines if the user needs to pay extra
+// to reach the minimum order value.
+func CalculateSmallOrderSurcharge(cartValue int64, minimum int64) int64 {
+    // First Principle: Guard Clauses
+    // If the cart is big enough, the math is simple: 0.
+    if cartValue >= minimum {
+        return 0
+    }
+
+    // Otherwise, it is the difference.
+    return minimum - cartValue
 }

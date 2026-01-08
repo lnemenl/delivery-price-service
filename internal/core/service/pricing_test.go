@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"testing"
@@ -52,5 +52,35 @@ func TestCalculateDeliveryFee(t *testing.T) {
 
 	if err == nil {
 		t.Error("Expected an error for long distance, but got none")
+	}
+}
+
+func TestCalculateSmallOrderSurcharge(t *testing.T) {
+	// ARRANGE
+	// We define the rule: Minimum order is 1000 cents (10 EUR)
+	minimumNoSurcharge := int64(1000)
+
+	// We define test cases (Table Driven Tests are elegant!)
+	tests := []struct {
+		name      string
+		cartValue int64
+		expected  int64
+	}{
+		{"Cart is exactly min", 1000, 0},
+		{"Cart is above min", 1500, 0},
+		{"Cart is below min", 800, 200}, // 1000 - 800 = 200
+		{"Cart is zero", 0, 1000},       // 1000 - 0 = 1000
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// ACT
+			surcharge := CalculateSmallOrderSurcharge(tt.cartValue, minimumNoSurcharge)
+
+			// ASSERT
+			if surcharge != tt.expected {
+				t.Errorf("Cart %d: expected surcharge %d, got %d", tt.cartValue, tt.expected, surcharge)
+			}
+		})
 	}
 }
