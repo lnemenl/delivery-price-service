@@ -1,5 +1,5 @@
 {
-    "venue": {
+    "venue"        : {
         "id": "66fe419cd46e8b9f53fd6e5c",
         "image_url": "https://image-resizer-proxy.development.dev.woltapi.com/assets/677fab0c2e9a6361713418b6",
         "image_blurhash": "j2jQRa00hGTt;;gPmXKGcPTsPbpl",
@@ -11,71 +11,26 @@
         "description": "This is a venue that's used in engineering home assignment. Please don't modify!",
         "rating": null,
         "opening_times_schedule": [
-            {
-                "day": "Monday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Tuesday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Wednesday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Thursday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Friday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Saturday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Sunday",
-                "formatted_times": "All day"
-            }
+            {"day": "Monday",    "formatted_times": "All day"},
+            {"day": "Tuesday",   "formatted_times": "All day"},
+            {"day": "Wednesday", "formatted_times": "All day"},
+            {"day": "Thursday",  "formatted_times": "All day"},
+            {"day": "Friday",    "formatted_times": "All day"},
+            {"day": "Saturday",  "formatted_times": "All day"},
+            {"day": "Sunday",    "formatted_times": "All day"}
         ],
         "delivery_times_schedule": [
-            {
-                "day": "Monday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Tuesday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Wednesday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Thursday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Friday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Saturday",
-                "formatted_times": "All day"
-            },
-            {
-                "day": "Sunday",
-                "formatted_times": "All day"
-            }
+            {"day": "Monday",    "formatted_times": "All day"},
+            {"day": "Tuesday",   "formatted_times": "All day"},
+            {"day": "Wednesday", "formatted_times": "All day"},
+            {"day": "Thursday",  "formatted_times": "All day"},
+            {"day": "Friday",    "formatted_times": "All day"},
+            {"day": "Saturday",  "formatted_times": "All day"},
+            {"day": "Sunday",    "formatted_times": "All day"}
         ],
         "group_order_enabled": true,
         "share_url": "https://wolt-com.development.dev.woltapi.com/fi/fin/helsinki/restaurant/home-assignment-venue-helsinki",
-        "delivery_methods": [
-            "takeaway",
-            "homedelivery"
-        ],
+        "delivery_methods": ["takeaway", "homedelivery"],
         "currency": "EUR",
         "active_menu": null,
         "address": "Pohjoinen Rautatiekatu 21",
@@ -92,106 +47,34 @@
         "timezone": "Europe/Helsinki",
         "delivery_base_price": 190,
         "delivery_geo_range": {
-            "bbox": null,
-            "type": "Polygon",
+            "bbox"       : null,
+            "type"       : "Polygon",
             "coordinates": [
                 [
-                    [
-                        24.6734393541537,
-                        60.0426930237115
-                    ],
-                    [
-                        24.6283976297931,
-                        60.0698549263348
-                    ],
-                    [
-                        24.5947708065435,
-                        60.1008710579152
-                    ],
-                    [
-                        24.573874892501,
-                        60.1345585871764
-                    ],
-                    [
-                        24.5665489262058,
-                        60.1696290759248
-                    ],
-                    [
-                        24.5731173470931,
-                        60.2047370412785
-                    ],
-                    [
-                        24.5933710345593,
-                        60.238531295583
-                    ],
-                    [
-                        24.6265687188521,
-                        60.269707154417
-                    ],
-                    [
-                        24.671459728777,
-                        60.2970574711704
-                    ],
-                    [
-                        24.7263281076261,
-                        60.3195204059095
-                    ],
-                    [
-                        24.78905704552,
-                        60.3362218839388
-                    ],
-                    [
-                        24.8572114210374,
-                        60.3465108571135
-                    ],
-                    [
-                        24.92813512,
-                        60.3499857511838
-                    ],
-                    [
-                        24.9990588189626,
-                        60.3465108571135
-                    ],
-                    [
-                        25.06721319448,
-                        60.3362218839388
-                    ],
-                    [
-                        25.1299421323739,
-                        60.3195204059095
-                    ],
-                    [
-                        25.184810511223,
-                        60.2970574711704
-                    ],
-                    [
-                        25.2297015211479,
-                        60.269707154417
-                    ],
-                    [
-                        25.2628992054407,
-                        60.238531295583
-                    ],
-                    [
-                        25.2831528929069,
-                        60.2047370412785
-                    ],
-                    [
-                        25.2894693454678,
-                        60.1709758372586
-                    ],
-                    [
-                        25.1772688854267,
-                        60.1032084061598
-                    ],
-                    [
-                        24.6761654198424,
-                        60.0415832953636
-                    ],
-                    [
-                        24.6734393541537,
-                        60.0426930237115
-                    ]
+                    [24.6734393541537, 60.0426930237115],
+                    [24.6283976297931, 60.0698549263348],
+                    [24.5947708065435, 60.1008710579152],
+                    [24.573874892501 , 60.1345585871764],
+                    [24.5665489262058, 60.1696290759248],
+                    [24.5731173470931, 60.2047370412785],
+                    [24.5933710345593, 60.238531295583 ],
+                    [24.6265687188521, 60.269707154417 ],
+                    [24.671459728777 , 60.2970574711704],
+                    [24.7263281076261, 60.3195204059095],
+                    [24.78905704552  , 60.3362218839388],
+                    [24.8572114210374, 60.3465108571135],
+                    [24.92813512     , 60.3499857511838],
+                    [24.9990588189626, 60.3465108571135],
+                    [25.06721319448  , 60.3362218839388],
+                    [25.1299421323739, 60.3195204059095],
+                    [25.184810511223 , 60.2970574711704],
+                    [25.2297015211479, 60.269707154417 ],
+                    [25.2628992054407, 60.238531295583 ],
+                    [25.2831528929069, 60.2047370412785],
+                    [25.2894693454678, 60.1709758372586],
+                    [25.1772688854267, 60.1032084061598],
+                    [24.6761654198424, 60.0415832953636],
+                    [24.6734393541537, 60.0426930237115]
                 ]
             ]
         },
@@ -204,13 +87,13 @@
         "trader_information": null,
         "show_delivery_preestimate_by_time": false,
         "merchant": {
-            "id": "66fe40dfd46e8b9f53fd6e53",
-            "name": "Home Assignment merchant",
-            "business_id": "home-assignment-id-123",
+            "id"            : "66fe40dfd46e8b9f53fd6e53",
+            "name"          : "Home Assignment merchant",
+            "business_id"   : "home-assignment-id-123",
             "street_address": "Eteläinen Rautatiekatu 10",
-            "city": "Helsinki",
-            "post_code": "00100",
-            "country": "Finland"
+            "city"          : "Helsinki",
+            "post_code"     : "00100",
+            "country"       : "Finland"
         },
         "digital_services_act_information": {
             "name": "Home Assignment merchant",
@@ -224,14 +107,12 @@
         "group_order_id": null,
         "info": {
             "venue_info_service_fee_description": null,
-            "venue_info_order_minimum": "€10.00",
-            "venue_info_base_delivery_price": "€1.90"
+            "venue_info_order_minimum"          : "€10.00",
+            "venue_info_base_delivery_price"    : "€1.90"
         },
-        "zero_distance_fees": {
-            "delivery_price": 190
-        }
+        "zero_distance_fees": {"delivery_price": 190}
     },
-    "venue_raw": {
+    "venue_raw"    : {
         "id": "66fe419cd46e8b9f53fd6e5c",
         "name": "Home Assignment Venue Helsinki",
         "image_url": "https://image-resizer-proxy.development.dev.woltapi.com/assets/677fab0c2e9a6361713418b6",
@@ -241,93 +122,56 @@
         "description": "This is a venue that's used in engineering home assignment. Please don't modify!",
         "group_order_enabled": true,
         "share_url": "https://wolt-com.development.dev.woltapi.com/fi/fin/helsinki/restaurant/home-assignment-venue-helsinki",
-        "delivery_methods": [
-            "takeaway",
-            "homedelivery"
-        ],
+        "delivery_methods": ["takeaway", "homedelivery"],
         "currency": "EUR",
         "opening_times": {
-            "monday": [
-                {
-                    "type": "open",
-                    "value": 0
-                }
-            ],
-            "tuesday": [],
-            "wednesday": [],
-            "thursday": [],
-            "friday": [],
-            "saturday": [],
-            "sunday": [
-                {
-                    "type": "close",
-                    "value": 86400
-                }
-            ]
+            "monday"   : [ {"type": "open",  "value":     0} ],
+            "tuesday"  : [                                   ],
+            "wednesday": [                                   ],
+            "thursday" : [                                   ],
+            "friday"   : [                                   ],
+            "saturday" : [                                   ],
+            "sunday"   : [ {"type": "close", "value": 86400} ]
         },
         "preorder_config": null,
         "preorder_specs": {
-            "preorder_only": false,
-            "time_step": 5,
+            "preorder_only"    : false,
+            "time_step"        : 5,
             "homedelivery_spec": {
                 "earliest_timedelta": 60,
-                "latest_timedelta": 8,
-                "preorder_times": {
-                    "monday": [
-                        {
-                            "type": "open",
-                            "value": 0
-                        }
-                    ],
-                    "tuesday": null,
+                "latest_timedelta"  : 8,
+                "preorder_times"    : {
+                    "monday"   : [ {"type": "open",  "value":     0} ],
+                    "tuesday"  : null,
                     "wednesday": null,
-                    "thursday": null,
-                    "friday": null,
-                    "saturday": null,
-                    "sunday": [
-                        {
-                            "type": "close",
-                            "value": 86400
-                        }
-                    ]
+                    "thursday" : null,
+                    "friday"   : null,
+                    "saturday" : null,
+                    "sunday"   : [ {"type": "close", "value": 86400} ]
                 }
             },
-            "takeaway_spec": {
+            "takeaway_spec"    : {
                 "earliest_timedelta": 50,
-                "latest_timedelta": 8,
-                "preorder_times": {
-                    "monday": [
-                        {
-                            "type": "open",
-                            "value": 0
-                        }
-                    ],
-                    "tuesday": null,
+                "latest_timedelta"  : 8,
+                "preorder_times"    : {
+                    "monday"   : [ {"type": "open",  "value":     0} ],
+                    "tuesday"  : null,
                     "wednesday": null,
-                    "thursday": null,
-                    "friday": null,
-                    "saturday": null,
-                    "sunday": [
-                        {
-                            "type": "close",
-                            "value": 86400
-                        }
-                    ]
+                    "thursday" : null,
+                    "friday"   : null,
+                    "saturday" : null,
+                    "sunday"   : [ {"type": "close", "value": 86400} ]
                 }
             },
-            "eatin_spec": null
+            "eatin_spec"       : null
         },
         "ncd_allowed": true,
         "tipping": {
-            "currency": "EUR",
-            "tip_amounts": [
-                100,
-                200,
-                500
-            ],
-            "max_amount": 2000,
-            "min_amount": 50,
-            "type": "pre_tipping_amount"
+            "currency"   : "EUR",
+            "tip_amounts": [100, 200, 500],
+            "max_amount" : 2000,
+            "min_amount" : 50,
+            "type"       : "pre_tipping_amount"
         },
         "delivery_note": null,
         "public_visible": false,
@@ -341,21 +185,12 @@
         "item_cards_enabled": false,
         "service_fee_description": null,
         "food_tags": null,
-        "allowed_payment_methods": [
-            "card"
-        ],
+        "allowed_payment_methods": ["card"],
         "food_safety_reports": null,
         "is_wolt_plus": false,
         "categories": null,
         "rating": null,
-        "location": {
-            "bbox": null,
-            "type": "Point",
-            "coordinates": [
-                24.92813512,
-                60.17012143
-            ]
-        },
+        "location": { "bbox": null, "type": "Point", "coordinates": [24.92813512, 60.17012143] },
         "string_overrides": {
             "weighted_items_popup_disclaimer": null,
             "restricted_item_bottom_sheet_title": "Age verification needed",

@@ -30,7 +30,7 @@ func FetchVenueLocation(baseURL string, slug string) (domain.Location, error) {
 	if err != nil {
 		return domain.Location{}, fmt.Errorf("invalid json: %v", err)
 	}
-	coords := result.VanueRaw.Location.Coordinates
+	coords := result.VenueRaw.Location.Coordinates
 
 	if len(coords) < 2 {
 		return domain.Location{}, fmt.Errorf("missing coordinates")

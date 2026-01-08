@@ -33,8 +33,7 @@ func TestParseVenueJSON(t *testing.T) {
 	}
 
 	// 3. Asserting
-	coords := result.VanueRaw.Location.Coordinates
-
+	coords := result.VenueRaw.Location.Coordinates
 	t.Logf("Set coords %+v", result)
 
 	if len(coords) < 2 {
