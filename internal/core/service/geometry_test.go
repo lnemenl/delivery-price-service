@@ -1,9 +1,10 @@
-package service
+package service_test
 
 import (
 	"testing"
 
 	"github.com/lnemenl/wolt_1/internal/core/domain"
+	"github.com/lnemenl/wolt_1/internal/core/service"
 )
 
 func TestCalculateDistance(t *testing.T) {
@@ -14,7 +15,7 @@ func TestCalculateDistance(t *testing.T) {
 	island := domain.Location{Lat: 60.144, Lon: 24.984}
 
 	// 2. ACT
-	result := CalculateDistance(station, island)
+	result := service.CalculateDistance(station, island)
 
 	// 3. ASSERT (Check the result)
 	// Google Maps says this is about 3.9 km (3900 meters).

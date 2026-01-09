@@ -1,9 +1,10 @@
-package service
+package service_test
 
 import (
 	"testing"
 
 	"github.com/lnemenl/wolt_1/internal/core/domain"
+	"github.com/lnemenl/wolt_1/internal/core/service"
 )
 
 func TestCalculateDeliveryFee(t *testing.T) {
@@ -20,7 +21,7 @@ func TestCalculateDeliveryFee(t *testing.T) {
 
 	// 2. SCENARIO A: Short distance (100m)
 	// Should be: A(0) + B(0) = 0 extra fee
-	fee, err := CalculateDeliveryFee(100, woltRules)
+	fee, err := service.CalculateDeliveryFee(100, woltRules)
 
 	t.Logf("Tested Distance: 100m. Result Fee: %d. Error: %v", fee, err)
 
@@ -33,7 +34,7 @@ func TestCalculateDeliveryFee(t *testing.T) {
 
 	// 3. SCENARIO B: Medium distance (600m)
 	// Logic: A(100) + (1 * 600 / 10) = 100 + 60 = 160
-	fee, err = CalculateDeliveryFee(600, woltRules)
+	fee, err = service.CalculateDeliveryFee(600, woltRules)
 
 	t.Logf("Tested Distance: 600m. Result Fee: %d. Error: %v", fee, err)
 
@@ -46,7 +47,7 @@ func TestCalculateDeliveryFee(t *testing.T) {
 
 	// 4. SCENARIO C: Too far (1500m)
 	// Should return an error
-	fee, err = CalculateDeliveryFee(1500, woltRules)
+	fee, err = service.CalculateDeliveryFee(1500, woltRules)
 
 	t.Logf("Tested Distance: 1500m. Result Fee: %d. Error: %v", fee, err)
 
@@ -56,30 +57,39 @@ func TestCalculateDeliveryFee(t *testing.T) {
 }
 
 func TestCalculateSmallOrderSurcharge(t *testing.T) {
-	// ARRANGE
-	// We define the rule: Minimum order is 1000 cents (10 EUR)
-	minimumNoSurcharge := int64(1000)
-
-	// We define test cases (Table Driven Tests are elegant!)
+	// 1. ARRANGE (The Scenarios)
+	// We use a "Table-Driven Test". This is the Go standard
+	// Instead of writing 4 different "if" blocks, we make a list of inputs and expected outputs
 	tests := []struct {
-		name      string
-		cartValue int64
-		expected  int64
+		name      string // Name of the scenario (for logs)
+		cartValue int64  // Input: How much the user bought
+		minValue  int64  // Input: The minimum order rule (e.g. 1000)
+		expected  int64  // Output: What the surcharge should be
 	}{
-		{"Cart is exactly min", 1000, 0},
-		{"Cart is above min", 1500, 0},
-		{"Cart is below min", 800, 200}, // 1000 - 800 = 200
-		{"Cart is zero", 0, 1000},       // 1000 - 0 = 1000
+		// Case 1: Simple. 800 is less than 1000. Difference is 200.
+		{"Below Minimum", 800, 1000, 200},
+
+		// Case 2: Exact. 1000 equals 1000. No surcharge.
+		{"Exact Minimum", 1000, 1000, 0},
+
+		// Case 3: Above. 1500 is more than 1000. No surcharge.
+		{"Above Minimum", 1500, 1000, 0},
+
+		// Case 4: Zero. Bought nothing. Pay full surcharge.
+		{"Zero Cart", 0, 1000, 1000},
 	}
 
+	// 2. ACT & ASSERT (The Loop)
 	for _, tt := range tests {
+		// t.Run creates a sub-test. If one fails, we know exactly which name it was
 		t.Run(tt.name, func(t *testing.T) {
-			// ACT
-			surcharge := CalculateSmallOrderSurcharge(tt.cartValue, minimumNoSurcharge)
 
-			// ASSERT
-			if surcharge != tt.expected {
-				t.Errorf("Cart %d: expected surcharge %d, got %d", tt.cartValue, tt.expected, surcharge)
+			// We call the function (which doesn't exist yet!)
+			got := service.CalculateSmallOrderSurcharge(tt.cartValue, tt.minValue)
+
+			// We check the result
+			if got != tt.expected {
+				t.Errorf("Expected %d, got %d", tt.expected, got)
 			}
 		})
 	}

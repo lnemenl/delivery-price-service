@@ -85,8 +85,13 @@ func FetchDeliveryData(baseURL string, slug string) (domain.DeliveryData, error)
 		})
 	}
 
-	return domain.DeliveryData{
+	minOrder := rawSpecs.OrderMinimumNoSurcharge
+
+	// Pack everything
+	data := domain.DeliveryData{
 		PricingRules:      rules,
-		SmallOrderMinimum: rawSpecs.OrderMinimumNoSurcharge,
-	}, nil
+		SmallOrderMinimum: minOrder,
+	}
+
+	return data, nil
 }
