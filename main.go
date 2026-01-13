@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,26 +10,25 @@ import (
 )
 
 func main() {
-	// 1. WIRE THE DEPENDENCIES
-	// Create the API Client (The Tool)
+	// 1. Initialize the API Client
+	// This sets up the HTTP client with timeouts and the base URL
 	apiClient := client.New()
 
-	// Create the Handler (The Worker) and give it the tool
-	// This is "Dependency Injection" in its simplest form.
+	// 2. Initialize the Handler
+	// We inject the client into the handler
+	// It allows the handler to use the client without creating it itself
 	priceHandler := server.New(apiClient)
 
-	// 2. DEFINE THE ROUTES
-	// We tell Go's default router:
-	// "When a user hits '/api/v1/delivery-order-price', call priceHandler.HandleRequest"
+	// 3. Register the Route
+	// We map the specific URL path to our handler function
 	http.HandleFunc("/api/v1/delivery-order-price", priceHandler.HandleRequest)
 
-	// 3. START THE SERVER
-	// This is an infinite loop. It blocks here and listens for traffic.
-	// ":8000" means "Listen on Port 8000 on this machine".
-	log.Println("--- Wolt DOPC Service is running on http://localhost:8000 ---")
+	// 4. Start the Server
+	port := ":8080"
+	fmt.Printf("Server starting on port %s...\n", port)
 
-	err := http.ListenAndServe(":8000", nil)
-	if err != nil {
-		log.Fatal("Server crashed: ", err)
+	// ListenAndServe blocks forever. If it returns, something went wrong (like port in use)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
 	}
 }

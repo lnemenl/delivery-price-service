@@ -10,105 +10,98 @@ import (
 	"github.com/lnemenl/wolt_1/service"
 )
 
+// PriceHandler holds the dependencies needed to process a request
 type PriceHandler struct {
-	client *client.APIClient // I renamed this slot to 'client' to be clearer
+	client *client.APIClient
 }
 
-// New creates the handler.
-// We accept 'c' (the client) and put it into our struct.
+// New creates a new handler instance
 func New(c *client.APIClient) *PriceHandler {
 	return &PriceHandler{
 		client: c,
 	}
 }
 
-// HandleRequest is the main brain. It runs from top to bottom.
+// HandleRequest is the main entry point for the HTTP traffic
 func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
-
-	// ---------------------------------------------------------
-	// 1. CHECK METHOD
-	// ---------------------------------------------------------
+	// 1. Method Check
+	// We only allow GET requests. Any other is rejected
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// ---------------------------------------------------------
-	// 2. READ INPUTS (The Query Parameters)
-	// ---------------------------------------------------------
-	// We read strings from the URL
+	// 2. Parse and Validate Inputs
+	venueSlug, deliveryInput, err := parseInput(r)
+	if err != nil {
+		// If inputs are wrong (e.g., text instead of numbers), return 400 Bad Request
+		http.Error(w, fmt.Sprintf("Invalid input: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// 3. Fetch Data (The Courier)
+	// We use the injected client to get the raw data from Wolt
+	staticData, dynamicData, err := h.client.FetchVenueData(venueSlug)
+	if err != nil {
+		// If the external API fails, we return 500 Internal Server Error
+		http.Error(w, fmt.Sprintf("Failed to fetch venue data: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// 4. Calculate Price (The Brain)
+	// We pass the clean inputs and the venue data to the calculator
+	priceResponse, err := service.CalculatePrice(deliveryInput, staticData, dynamicData)
+	if err != nil {
+		// If calculation fails (e.g., distance too far), return 400 Bad Request
+		http.Error(w, fmt.Sprintf("Calculation error: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// 5. Send Response
+	// We set the header so the browser knows it's JSON
+	w.Header().Set("Content-Type", "application/json")
+	// We encode the Go struct into JSON and write it to the stream
+	if err := json.NewEncoder(w).Encode(priceResponse); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+// parseInput extracts and validates query parameters from the URL
+// It returns the venue slug and the standardized DeliveryInput struct
+func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	q := r.URL.Query()
-	slugStr := q.Get("venue_slug")
-	cartStr := q.Get("cart_value")
+
+	// A. Extract Strings
+	slug := q.Get("venue_slug")
+	cartValStr := q.Get("cart_value")
 	latStr := q.Get("user_lat")
 	lonStr := q.Get("user_lon")
 
-	// ---------------------------------------------------------
-	// 3. CONVERT INPUTS (String -> Number)
-	// ---------------------------------------------------------
-	if slugStr == "" {
-		http.Error(w, "Missing venue_slug", http.StatusBadRequest)
-		return
+	// B. Validate Required Fields
+	if slug == "" {
+		return "", service.DeliveryInput{}, fmt.Errorf("missing venue_slug")
 	}
 
-	// Convert "1000" -> 1000
-	cartValue, err := strconv.Atoi(cartStr)
+	// C. Convert Types (String -> Int/Float)
+	cartValue, err := strconv.Atoi(cartValStr)
 	if err != nil {
-		http.Error(w, "Invalid cart_value: must be an integer", http.StatusBadRequest)
-		return
+		return "", service.DeliveryInput{}, fmt.Errorf("invalid cart_value")
 	}
 
-	// Convert "60.17" -> 60.17
 	userLat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
-		http.Error(w, "Invalid user_lat: must be a number", http.StatusBadRequest)
-		return
+		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lat")
 	}
 
 	userLon, err := strconv.ParseFloat(lonStr, 64)
 	if err != nil {
-		http.Error(w, "Invalid user_lon: must be a number", http.StatusBadRequest)
-		return
+		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lon")
 	}
 
-	// ---------------------------------------------------------
-	// 4. FETCH DATA (Call the Client)
-	// ---------------------------------------------------------
-	// h.client refers to the pointer we stored in the struct
-	staticData, dynamicData, err := h.client.FetchVenueData(slugStr)
-	if err != nil {
-		// Log error for us, send 500 to user
-		fmt.Printf("API Error: %v\n", err)
-		http.Error(w, "Failed to fetch venue data", http.StatusInternalServerError)
-		return
-	}
-
-	// ---------------------------------------------------------
-	// 5. CALCULATE (Call the Service)
-	// ---------------------------------------------------------
-	input := service.DeliveryInput{
+	// D. Return Clean Data
+	return slug, service.DeliveryInput{
 		CartValue: cartValue,
 		UserLat:   userLat,
 		UserLon:   userLon,
-	}
-
-	priceResponse, err := service.CalculatePrice(input, staticData, dynamicData)
-	if err != nil {
-		// If math fails (too far), send 400
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// ---------------------------------------------------------
-	// 6. SEND RESPONSE
-	// ---------------------------------------------------------
-	// Tell browser: "This is JSON data"
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK) // 200 OK
-
-	// Write the JSON
-	encoder := json.NewEncoder(w)
-	if err := encoder.Encode(priceResponse); err != nil {
-		fmt.Printf("Encoding failed: %v\n", err)
-	}
+	}, nil
 }
