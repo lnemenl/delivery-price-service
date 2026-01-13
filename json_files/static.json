@@ -1,0 +1,202 @@
+{
+    "venue"        : {
+        "id": "66fe419cd46e8b9f53fd6e5c",
+        "image_url": "https://image-resizer-proxy.development.dev.woltapi.com/assets/677fab0c2e9a6361713418b6",
+        "image_blurhash": "j2jQRa00hGTt;;gPmXKGcPTsPbpl",
+        "brand_logo_image_url": null,
+        "brand_logo_image_blurhash": null,
+        "brand_slug": null,
+        "brand_name": null,
+        "name": "Home Assignment Venue Helsinki",
+        "description": "This is a venue that's used in engineering home assignment. Please don't modify!",
+        "rating": null,
+        "opening_times_schedule": [
+            {"day": "Monday",    "formatted_times": "All day"},
+            {"day": "Tuesday",   "formatted_times": "All day"},
+            {"day": "Wednesday", "formatted_times": "All day"},
+            {"day": "Thursday",  "formatted_times": "All day"},
+            {"day": "Friday",    "formatted_times": "All day"},
+            {"day": "Saturday",  "formatted_times": "All day"},
+            {"day": "Sunday",    "formatted_times": "All day"}
+        ],
+        "delivery_times_schedule": [
+            {"day": "Monday",    "formatted_times": "All day"},
+            {"day": "Tuesday",   "formatted_times": "All day"},
+            {"day": "Wednesday", "formatted_times": "All day"},
+            {"day": "Thursday",  "formatted_times": "All day"},
+            {"day": "Friday",    "formatted_times": "All day"},
+            {"day": "Saturday",  "formatted_times": "All day"},
+            {"day": "Sunday",    "formatted_times": "All day"}
+        ],
+        "group_order_enabled": true,
+        "share_url": "https://wolt-com.development.dev.woltapi.com/fi/fin/helsinki/restaurant/home-assignment-venue-helsinki",
+        "delivery_methods": ["takeaway", "homedelivery"],
+        "currency": "EUR",
+        "active_menu": null,
+        "address": "Pohjoinen Rautatiekatu 21",
+        "city": "Helsinki",
+        "country": "FIN",
+        "type": "purchase",
+        "website": null,
+        "substitutions_enabled": null,
+        "post_code": "00100",
+        "product_line": "restaurant",
+        "secondary_product_line": "none",
+        "phone": null,
+        "self_delivery": false,
+        "timezone": "Europe/Helsinki",
+        "delivery_base_price": 190,
+        "delivery_geo_range": {
+            "bbox"       : null,
+            "type"       : "Polygon",
+            "coordinates": [
+                [
+                    [24.6734393541537, 60.0426930237115],
+                    [24.6283976297931, 60.0698549263348],
+                    [24.5947708065435, 60.1008710579152],
+                    [24.573874892501 , 60.1345585871764],
+                    [24.5665489262058, 60.1696290759248],
+                    [24.5731173470931, 60.2047370412785],
+                    [24.5933710345593, 60.238531295583 ],
+                    [24.6265687188521, 60.269707154417 ],
+                    [24.671459728777 , 60.2970574711704],
+                    [24.7263281076261, 60.3195204059095],
+                    [24.78905704552  , 60.3362218839388],
+                    [24.8572114210374, 60.3465108571135],
+                    [24.92813512     , 60.3499857511838],
+                    [24.9990588189626, 60.3465108571135],
+                    [25.06721319448  , 60.3362218839388],
+                    [25.1299421323739, 60.3195204059095],
+                    [25.184810511223 , 60.2970574711704],
+                    [25.2297015211479, 60.269707154417 ],
+                    [25.2628992054407, 60.238531295583 ],
+                    [25.2831528929069, 60.2047370412785],
+                    [25.2894693454678, 60.1709758372586],
+                    [25.1772688854267, 60.1032084061598],
+                    [24.6761654198424, 60.0415832953636],
+                    [24.6734393541537, 60.0426930237115]
+                ]
+            ]
+        },
+        "service_fee_short_description": null,
+        "service_fee_estimate": null,
+        "feature_croatia_currency_selection_enabled": false,
+        "show_eco_packaging": false,
+        "is_pickup_friendly": false,
+        "age_verification_method": "age_verification",
+        "trader_information": null,
+        "show_delivery_preestimate_by_time": false,
+        "merchant": {
+            "id"            : "66fe40dfd46e8b9f53fd6e53",
+            "name"          : "Home Assignment merchant",
+            "business_id"   : "home-assignment-id-123",
+            "street_address": "Eteläinen Rautatiekatu 10",
+            "city"          : "Helsinki",
+            "post_code"     : "00100",
+            "country"       : "Finland"
+        },
+        "digital_services_act_information": {
+            "name": "Home Assignment merchant",
+            "business_id": "home-assignment-id-123",
+            "address": "Eteläinen Rautatiekatu 10, 00100, Helsinki, Finland",
+            "self_certification": "The Partner is committed to only offering products and/or services that comply with the applicable laws.",
+            "report_item_url": "https://www.surveymonkey.com/r/VHFTCJX"
+        },
+        "slug": "home-assignment-venue-helsinki",
+        "venue_supports_wolt_pay": false,
+        "group_order_id": null,
+        "info": {
+            "venue_info_service_fee_description": null,
+            "venue_info_order_minimum"          : "€10.00",
+            "venue_info_base_delivery_price"    : "€1.90"
+        },
+        "zero_distance_fees": {"delivery_price": 190}
+    },
+    "venue_raw"    : {
+        "id": "66fe419cd46e8b9f53fd6e5c",
+        "name": "Home Assignment Venue Helsinki",
+        "image_url": "https://image-resizer-proxy.development.dev.woltapi.com/assets/677fab0c2e9a6361713418b6",
+        "image_blurhash": "j2jQRa00hGTt;;gPmXKGcPTsPbpl",
+        "brand_logo_image_url": null,
+        "brand_logo_image_blurhash": null,
+        "description": "This is a venue that's used in engineering home assignment. Please don't modify!",
+        "group_order_enabled": true,
+        "share_url": "https://wolt-com.development.dev.woltapi.com/fi/fin/helsinki/restaurant/home-assignment-venue-helsinki",
+        "delivery_methods": ["takeaway", "homedelivery"],
+        "currency": "EUR",
+        "opening_times": {
+            "monday"   : [ {"type": "open",  "value":     0} ],
+            "tuesday"  : [                                   ],
+            "wednesday": [                                   ],
+            "thursday" : [                                   ],
+            "friday"   : [                                   ],
+            "saturday" : [                                   ],
+            "sunday"   : [ {"type": "close", "value": 86400} ]
+        },
+        "preorder_config": null,
+        "preorder_specs": {
+            "preorder_only"    : false,
+            "time_step"        : 5,
+            "homedelivery_spec": {
+                "earliest_timedelta": 60,
+                "latest_timedelta"  : 8,
+                "preorder_times"    : {
+                    "monday"   : [ {"type": "open",  "value":     0} ],
+                    "tuesday"  : null,
+                    "wednesday": null,
+                    "thursday" : null,
+                    "friday"   : null,
+                    "saturday" : null,
+                    "sunday"   : [ {"type": "close", "value": 86400} ]
+                }
+            },
+            "takeaway_spec"    : {
+                "earliest_timedelta": 50,
+                "latest_timedelta"  : 8,
+                "preorder_times"    : {
+                    "monday"   : [ {"type": "open",  "value":     0} ],
+                    "tuesday"  : null,
+                    "wednesday": null,
+                    "thursday" : null,
+                    "friday"   : null,
+                    "saturday" : null,
+                    "sunday"   : [ {"type": "close", "value": 86400} ]
+                }
+            },
+            "eatin_spec"       : null
+        },
+        "ncd_allowed": true,
+        "tipping": {
+            "currency"   : "EUR",
+            "tip_amounts": [100, 200, 500],
+            "max_amount" : 2000,
+            "min_amount" : 50,
+            "type"       : "pre_tipping_amount"
+        },
+        "delivery_note": null,
+        "public_visible": false,
+        "bag_fee": null,
+        "comment_disabled": false,
+        "short_description": null,
+        "city_id": "58a462711c5ea23ce19e15ca",
+        "merchant": "66fe40dfd46e8b9f53fd6e53",
+        "show_allergy_disclaimer_on_menu": false,
+        "price_range": 0,
+        "item_cards_enabled": false,
+        "service_fee_description": null,
+        "food_tags": null,
+        "allowed_payment_methods": ["card"],
+        "food_safety_reports": null,
+        "is_wolt_plus": false,
+        "categories": null,
+        "rating": null,
+        "location": { "bbox": null, "type": "Point", "coordinates": [24.92813512, 60.17012143] },
+        "string_overrides": {
+            "weighted_items_popup_disclaimer": null,
+            "restricted_item_bottom_sheet_title": "Age verification needed",
+            "restricted_item_bottom_sheet_info": "Your order contains age-restricted items. Please confirm that you are of the legally-required age to buy these items in your country, and be ready to show a valid photo ID at handoff.\n\nAre you allowed to purchase these items?",
+            "restricted_item_bottom_sheet_confirm": "Yes, I'm allowed"
+        }
+    },
+    "order_minimum": 1000
+}
