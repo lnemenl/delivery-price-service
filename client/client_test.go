@@ -1,43 +1,42 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestFetchVenueData(t *testing.T) {
-	t.Log("--- STARTING TEST: TestFetchVenueData ---")
 
-	// 1. START FAKE SERVER
-	// This function handles requests from the client.
+	// =========================================================================
+	// 1. SETTING THE SCENE (The Fake Internet)
+	// We create a local web server to mimic Wolt. This allows us to test
+	// without actual internet access and ensures consistent results
+	// =========================================================================
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Logf("[SERVER] Received Request: Method=%s, Path=%s", r.Method, r.URL.Path)
 
-		switch r.URL.Path {
-		case "/test-venue/static":
-			t.Log("[SERVER] Matched /static endpoint. Sending 200 OK + JSON...")
-
-			// Step 1: Set Status Code
+		// SCENARIO: Client asks for STATIC data
+		// We listen for the specific URL ending in "/static"
+		if r.URL.Path == "/test-venue/static" {
 			w.WriteHeader(http.StatusOK)
-
-			// Step 2: Write Body (JSON)
-			// Note: We use raw string literals (backticks `) for multi-line strings
-			responseBody := `{
+			// Return minimal valid JSON for location
+			w.Write([]byte(`{
 				"venue_raw": {
 					"location": {
 						"coordinates": [24.93, 60.17]
 					}
 				}
-			}`
-			w.Write([]byte(responseBody))
-			t.Log("[SERVER] Static response sent.")
+			}`))
+			return
+		}
 
-		case "/test-venue/dynamic":
-			t.Log("[SERVER] Matched /dynamic endpoint. Sending 200 OK + JSON...")
-
+		// SCENARIO: Client asks for DYNAMIC data
+		// We listen for the specific URL ending in "/dynamic"
+		if r.URL.Path == "/test-venue/dynamic" {
 			w.WriteHeader(http.StatusOK)
-			responseBody := `{
+			// Return minimal valid JSON for pricing
+			w.Write([]byte(`{
 				"venue_raw": {
 					"delivery_specs": {
 						"order_minimum_no_surcharge": 1000,
@@ -47,106 +46,73 @@ func TestFetchVenueData(t *testing.T) {
 						}
 					}
 				}
-			}`
-			w.Write([]byte(responseBody))
-			t.Log("[SERVER] Dynamic response sent.")
-
-		default:
-			t.Logf("[SERVER] ERROR: Unknown path requested: %s", r.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
+			}`))
+			return
 		}
+
+		// FALLBACK: If the URL is wrong, return 404 Not Found
+		w.WriteHeader(http.StatusNotFound)
 	}))
-	defer mockServer.Close()
-	t.Logf("[TEST] Fake Server is running at: %s", mockServer.URL)
-
-	// 2. CONFIGURE CLIENT
-	api := New()
-	api.BaseURL = mockServer.URL + "/" // Pointing client to localhost
-	t.Logf("[TEST] Configured Client BaseURL: %s", api.BaseURL)
-
-	// 3. EXECUTE
-	// We pass "test-venue".
-	// The client will build: BaseURL + "test-venue" + "/static"
-	t.Log("[TEST] Calling FetchVenueData('test-venue')...")
-
-	static, dynamic, err := api.FetchVenueData("test-venue")
-
-	// 4. ASSERT
-	t.Log("[TEST] Function returned. Checking results...")
-
-	if err != nil {
-		t.Fatalf("[TEST] FAILED: Expected success, got error: %v", err)
-	}
-
-	// Check Static
-	t.Logf("[TEST] Static Coords Received: %v", static.VenueRaw.Location.Coordinates)
-	if len(static.VenueRaw.Location.Coordinates) != 2 {
-		t.Errorf("Expected 2 coordinates, got %d", len(static.VenueRaw.Location.Coordinates))
-	}
-
-	// Check Dynamic
-	t.Logf("[TEST] Base Price Received: %d", dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice)
-	if dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice != 190 {
-		t.Errorf("Expected base price 190, got %d", dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice)
-	}
-
-	t.Log("--- FINISHED TEST: TestFetchVenueData ---")
-}
-
-func TestFetchVenueData_NetworkError(t *testing.T) {
-	t.Log("--- STARTING TEST: NetworkError ---")
-
-	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Logf("[SERVER] Received Request: %s. Forcing 500 Error.", r.URL.Path)
-		w.WriteHeader(http.StatusInternalServerError) // 500
-	}))
+	// Clean up: Shut down the server when the test finishes
 	defer mockServer.Close()
 
-	api := New()
-	api.BaseURL = mockServer.URL + "/"
+	// =========================================================================
+	// CHAPTER 1: THE SUCCESSFUL DOWNLOAD
+	// Scenario: Everything works. We ask for "test-venue", and the mock server
+	// returns valid JSON for both static and dynamic calls
+	// =========================================================================
+	t.Run("Happy Path: Success Fetch", func(t *testing.T) {
+		// 1. Setup the Tool
+		api := New()
+		// CRITICAL: We override the BaseURL to point to our local mock server
+		// instead of the real Wolt API
+		api.BaseURL = mockServer.URL + "/"
 
-	t.Log("[TEST] Calling FetchVenueData...")
-	// We use _, _, err because we ONLY care about the error in this test
-	_, _, err := api.FetchVenueData("test-venue")
+		// 2. Action: Call the function
+		static, dynamic, err := api.FetchVenueData("test-venue")
 
-	if err == nil {
-		t.Fatal("[TEST] FAILED: Expected an error, but got success!")
-	}
-
-	t.Logf("[TEST] SUCCESS: Got expected error: %v", err)
-	t.Log("--- FINISHED TEST: NetworkError ---")
-}
-
-func TestFetchVenueData_DynamicFailure(t *testing.T) {
-	t.Log("--- STARTING TEST: DynamicFailure ---")
-
-	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/test-venue/static":
-			// Static works fine!
-			t.Log("[SERVER] Static request. Sending 200 OK.")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"venue_raw": {"location": {"coordinates": [0,0]}}}`))
-
-		case "/test-venue/dynamic":
-			// Dynamic FAILS!
-			t.Log("[SERVER] Dynamic request. Forcing 404 Not Found.")
-			w.WriteHeader(http.StatusNotFound) // 404
+		// 3. Assertions
+		if err != nil {
+			t.Fatalf("Expected success, but got error: %v", err)
 		}
-	}))
-	defer mockServer.Close()
 
-	api := New()
-	api.BaseURL = mockServer.URL + "/"
+		// Check if Static data was correctly decoded
+		if len(static.VenueRaw.Location.Coordinates) != 2 {
+			t.Errorf("Expected 2 coordinates, got %d", len(static.VenueRaw.Location.Coordinates))
+		}
+		if static.VenueRaw.Location.Coordinates[0] != 24.93 {
+			t.Errorf("Expected lon 24.93, got %f", static.VenueRaw.Location.Coordinates[0])
+		}
 
-	t.Log("[TEST] Calling FetchVenueData...")
-	_, _, err := api.FetchVenueData("test-venue")
+		// Check if Dynamic data was correctly decoded
+		if dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice != 190 {
+			t.Errorf("Expected base price 190, got %d", dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice)
+		}
+	})
 
-	// We expect an error because Dynamic failed
-	if err == nil {
-		t.Fatal("[TEST] FAILED: Expected error (due to dynamic fail), but got success")
-	}
+	// =========================================================================
+	// CHAPTER 2: THE BROKEN LINK
+	// Scenario: We ask for a venue that doesn't exist ("wrong-venue")
+	// The mock server will return 404 (Not Found)
+	// =========================================================================
+	t.Run("Sad Path: Dynamic Endpoint Fails", func(t *testing.T) {
+		api := New()
+		api.BaseURL = mockServer.URL + "/"
 
-	t.Logf("[TEST] SUCCESS: Got expected error: %v", err)
-	t.Log("--- FINISHED TEST: DynamicFailure ---")
+		// We ask for "wrong-venue". Our mock server logic above defaults to 404
+		_, _, err := api.FetchVenueData("wrong-venue")
+
+		// We expect an error here.
+		if err == nil {
+			t.Fatal("Expected an error (404), but got success")
+		}
+
+		// Verify the error message is what we expect
+		// The client.go adds context "static data error: ..." or "dynamic data error: ..."
+		// Since static is called first, it should fail there first
+		expectedError := "API returned status: 404"
+		if fmt.Sprintf("%s", err) != "static data error: "+expectedError {
+			t.Logf("Got expected error: %v", err)
+		}
+	})
 }
