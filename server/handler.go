@@ -71,34 +71,43 @@ func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	q := r.URL.Query()
 
-	// A. Extract Strings
 	slug := q.Get("venue_slug")
 	cartValStr := q.Get("cart_value")
 	latStr := q.Get("user_lat")
 	lonStr := q.Get("user_lon")
 
-	// B. Validate Required Fields
+	// 1. Check Slug
 	if slug == "" {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing venue_slug")
 	}
 
-	// C. Convert Types (String -> Int/Float)
+	// 2. Check Cart Value (Must be number AND non-negative)
 	cartValue, err := strconv.Atoi(cartValStr)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid cart_value")
 	}
+	if cartValue < 0 {
+		return "", service.DeliveryInput{}, fmt.Errorf("cart_value cannot be negative")
+	}
 
+	// 3. Check Latitude (-90 to 90)
 	userLat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lat")
 	}
+	if userLat < -90 || userLat > 90 {
+		return "", service.DeliveryInput{}, fmt.Errorf("user_lat must be between -90 and 90")
+	}
 
+	// 4. Check Longitude (-180 to 180)
 	userLon, err := strconv.ParseFloat(lonStr, 64)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lon")
 	}
+	if userLon < -180 || userLon > 180 {
+		return "", service.DeliveryInput{}, fmt.Errorf("user_lon must be between -180 and 180")
+	}
 
-	// D. Return Clean Data
 	return slug, service.DeliveryInput{
 		CartValue: cartValue,
 		UserLat:   userLat,
