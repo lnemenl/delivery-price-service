@@ -81,6 +81,10 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing venue_slug")
 	}
 
+	if len(slug) > 100 {
+		return "", service.DeliveryInput{}, fmt.Errorf("venue_slug too long")
+	}
+
 	// 2. Check Cart Value (Must be number AND non-negative)
 	cartValue, err := strconv.Atoi(cartValStr)
 	if err != nil {

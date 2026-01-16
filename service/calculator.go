@@ -53,21 +53,51 @@ func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic mode
 	}, nil
 }
 
-// calculateDistance returns straight-line distance in meters
+// // calculateDistance returns straight-line distance in meters
+// func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
+// 	venueLon := venueCoords[0]
+// 	venueLat := venueCoords[1]
+
+// 	// Conversion constant: 1 degree latitude ~= 111,139 meters
+// 	const metersPerDegree = 111139.0
+
+// 	latDist := (userLat - venueLat) * metersPerDegree
+// 	lonDist := (userLon - venueLon) * metersPerDegree
+
+// 	// Pythagoras: c = sqrt(a^2 + b^2)
+// 	distInMeters := math.Sqrt(latDist*latDist + lonDist*lonDist)
+
+// 	return int(math.Round(distInMeters))
+// }
+
+// the Haversine formula
 func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
 	venueLon := venueCoords[0]
 	venueLat := venueCoords[1]
 
-	// Conversion constant: 1 degree latitude ~= 111,139 meters
-	const metersPerDegree = 111139.0
+	// Earth radius in meters
+	const R = 6371000.0
 
-	latDist := (userLat - venueLat) * metersPerDegree
-	lonDist := (userLon - venueLon) * metersPerDegree
+	// Convert degrees to radians
+	toRad := func(deg float64) float64 {
+		return deg * math.Pi / 180
+	}
 
-	// Pythagoras: c = sqrt(a^2 + b^2)
-	distInMeters := math.Sqrt(latDist*latDist + lonDist*lonDist)
+	lat1 := toRad(userLat)
+	lat2 := toRad(venueLat)
+	dLat := toRad(venueLat - userLat)
+	dLon := toRad(venueLon - userLon)
 
-	return int(math.Round(distInMeters))
+	// Haversine formula
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1)*math.Cos(lat2)*
+			math.Sin(dLon/2)*math.Sin(dLon/2)
+
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	distance := R * c
+
+	return int(math.Round(distance))
 }
 
 // calculateFee finds the matching price rule for the distance

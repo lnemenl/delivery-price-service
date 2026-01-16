@@ -128,4 +128,89 @@ func TestHandleRequest(t *testing.T) {
 			t.Errorf("Expected 405, got %d", rr.Code)
 		}
 	})
+
+	t.Run("Validation: Negative Cart Value", func(t *testing.T) {
+		// Scenario: User sends -100 as money. Impossible in real life.
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=-100&user_lat=60&user_lon=24"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		// Expect 400 Bad Request
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		// Expect specific error message
+		if !strings.Contains(rr.Body.String(), "cannot be negative") {
+			t.Errorf("Expected negative error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Latitude Too High", func(t *testing.T) {
+		// Scenario: User sends Lat 91.0 (North of North Pole).
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=100&user_lat=91.0&user_lon=24"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "between -90 and 90") {
+			t.Errorf("Expected latitude error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Longitude Too Low", func(t *testing.T) {
+		// Scenario: User sends Lon -181 (West of the Date Line).
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=100&user_lat=60&user_lon=-181"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "between -180 and 180") {
+			t.Errorf("Expected longitude error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Garbage Cart Value", func(t *testing.T) {
+		// Scenario: User sends text "abc" instead of numbers.
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=abc&user_lat=60&user_lon=24"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "invalid cart_value") {
+			t.Errorf("Expected invalid format error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Venue Slug Too Long", func(t *testing.T) {
+		// Scenario: User sends a slug that is 101 characters long.
+		// We use strings.Repeat("a", 101) to generate it easily.
+		longSlug := strings.Repeat("a", 101)
+		url := "/api/v1/delivery-order-price?venue_slug=" + longSlug + "&cart_value=100&user_lat=60&user_lon=24"
+
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "venue_slug too long") {
+			t.Errorf("Expected slug length error, got: %s", rr.Body.String())
+		}
+	})
 }
