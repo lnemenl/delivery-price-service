@@ -20,7 +20,7 @@ func main() {
 	http.HandleFunc("/api/v1/delivery-order-price", priceHandler.HandleRequest)
 
 	// Start the server
-	port := ":8080"
+	port := ":8000"
 	fmt.Printf("Server starting on port %s...\n", port)
 
 	// ListenAndServe blocks forever; if it returns, something went wrong

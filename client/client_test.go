@@ -97,8 +97,11 @@ func TestFetchVenueData(t *testing.T) {
 
 		// Verify error message includes context about which endpoint failed
 		expectedError := "API returned status: 404"
-		if fmt.Sprintf("%s", err) != "static data error: "+expectedError {
-			t.Logf("Got expected error: %v", err)
+		actualError := fmt.Sprintf("%s", err)
+		expectedFullError := "static data error: " + expectedError
+
+		if actualError != expectedFullError {
+			t.Errorf("Expected error %q, but got %q", expectedFullError, actualError)
 		}
 	})
 }

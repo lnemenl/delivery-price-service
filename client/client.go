@@ -49,25 +49,25 @@ func (c *APIClient) FetchVenueData(slug string) (models.VenueStatic, models.Venu
 // get is a private helper that performs the HTTP Request and Decodes the JSON
 // target interface{} allows to pass ANY struct (Static or Dynamic) to be filled
 func (c *APIClient) get(url string, target interface{}) error {
-	// A. Create Request
+	// Create Request
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
 
-	// B. Execute Request
+	// Execute Request
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// C. Check Status Code
+	// Check Status Code
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API returned status: %d", resp.StatusCode)
 	}
 
-	// D. Decode JSON into the target struct
+	// Decode JSON into the target struct
 	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
 		return fmt.Errorf("failed to decode JSON: %w", err)
 	}

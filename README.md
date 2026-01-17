@@ -12,12 +12,12 @@ You can run the service directly:
 ```bash
 go run main.go
 ```
-*The server will start on port `:8080`.*
+*The server will start on port `:8000`.*
 
 ### 2. Verify with a Request
 Open a new terminal and run this command to simulate a delivery in Helsinki:
 ```bash
-curl "http://localhost:8080/api/v1/delivery-order-price?venue_slug=home-assignment-venue-helsinki&cart_value=1000&user_lat=60.17094&user_lon=24.93087"
+curl "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignment-venue-helsinki&cart_value=1000&user_lat=60.17094&user_lon=24.93087"
 ```
 
 **Expected JSON Output:**
