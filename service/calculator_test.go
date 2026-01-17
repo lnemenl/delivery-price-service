@@ -169,4 +169,68 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatal("Expected an error (Too Far), but got success!")
 		}
 	})
+
+	// =========================================================================
+	// CHAPTER 6: ZERO CART VALUE
+	// Scenario: User orders 0€ worth of items
+	// Expectation: Surcharge is 1000 (full minimum), fee is calculated normally
+	// =========================================================================
+	t.Run("Edge Case: Zero Cart Value", func(t *testing.T) {
+		input := DeliveryInput{
+			CartValue: 0,
+			UserLat:   0.0,
+			UserLon:   0.0,
+		}
+
+		resp, err := CalculatePrice(input, venueLoc, venueRules)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		// Surcharge should be full minimum (1000)
+		if resp.SmallOrderSurcharge != 1000 {
+			t.Errorf("Expected surcharge 1000, got %d", resp.SmallOrderSurcharge)
+		}
+
+		// Total should be 0 + 1000 + 190 = 1190
+		if resp.TotalPrice != 1190 {
+			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
+		}
+	})
+
+	// =========================================================================
+	// CHAPTER 7: NEGATIVE B COEFFICIENT
+	// Scenario: B can be negative (example from real data: b = -1)
+	// Formula: Base + A + (B * distance / 10)
+	// If B is negative, it reduces the fee
+	// =========================================================================
+	t.Run("Edge Case: Negative B Coefficient", func(t *testing.T) {
+		input := DeliveryInput{
+			CartValue: 1000,
+			UserLat:   0.006,
+			UserLon:   0.0,
+		}
+
+		// Custom rules with negative B
+		customRules := models.VenueDynamic{}
+		customRules.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = 1000
+		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = 190
+		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.DistanceRanges = []models.DistanceRange{
+			{Min: 0, Max: 1000, A: 1000, B: -1.0}, // Negative multiplier
+			{Min: 1000, Max: 0, A: 0, B: 0},
+		}
+
+		resp, err := CalculatePrice(input, venueLoc, customRules)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		// Distance is 667m
+		// Fee = Base(190) + A(1000) + B_Component(-1.0 * 667 / 10)
+		// B_Component = int(Round(-66.7)) = -67
+		// Fee = 190 + 1000 + (-67) = 1123
+		if resp.Delivery.Fee != 1123 {
+			t.Errorf("Expected fee 1123, got %d", resp.Delivery.Fee)
+		}
+	})
 }

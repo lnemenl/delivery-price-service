@@ -93,6 +93,9 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	}
 
 	// 2. Check Cart Value (Must be number AND non-negative)
+	if cartValStr == "" {
+		return "", service.DeliveryInput{}, fmt.Errorf("missing cart_value")
+	}
 	cartValue, err := strconv.Atoi(cartValStr)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid cart_value")
@@ -102,6 +105,9 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	}
 
 	// 3. Check Latitude (-90 to 90)
+	if latStr == "" {
+		return "", service.DeliveryInput{}, fmt.Errorf("missing user_lat")
+	}
 	userLat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lat")
@@ -111,6 +117,9 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	}
 
 	// 4. Check Longitude (-180 to 180)
+	if lonStr == "" {
+		return "", service.DeliveryInput{}, fmt.Errorf("missing user_lon")
+	}
 	userLon, err := strconv.ParseFloat(lonStr, 64)
 	if err != nil {
 		return "", service.DeliveryInput{}, fmt.Errorf("invalid user_lon")

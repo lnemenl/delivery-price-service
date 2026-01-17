@@ -25,15 +25,15 @@ func TestHandleRequest(t *testing.T) {
 			return
 		}
 
-		// SCENARIO: STATIC DATA
-		if strings.Contains(r.URL.Path, "/static") {
+		// SCENARIO: STATIC DATA (only for test-venue)
+		if strings.Contains(r.URL.Path, "test-venue") && strings.Contains(r.URL.Path, "/static") {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"venue_raw": {"location": {"coordinates": [24.93, 60.17]}}}`))
 			return
 		}
 
-		// SCENARIO: DYNAMIC DATA
-		if strings.Contains(r.URL.Path, "/dynamic") {
+		// SCENARIO: DYNAMIC DATA (only for test-venue)
+		if strings.Contains(r.URL.Path, "test-venue") && strings.Contains(r.URL.Path, "/dynamic") {
 			w.WriteHeader(http.StatusOK)
 			// Max distance 1000m
 			w.Write([]byte(`{"venue_raw": {"delivery_specs": {"order_minimum_no_surcharge": 1000, "delivery_pricing": {"base_price":190, "distance_ranges": [{"min":0, "max":1000, "a":0, "b":0}]}}}}`))
@@ -226,6 +226,51 @@ func TestHandleRequest(t *testing.T) {
 		// Expect 404 Not Found (NOT 500)
 		if rr.Code != http.StatusNotFound {
 			t.Errorf("Expected 404 Not Found, got %d", rr.Code)
+		}
+	})
+
+	t.Run("Validation: Missing cart_value", func(t *testing.T) {
+		url := "/api/v1/delivery-order-price?venue_slug=test&user_lat=60&user_lon=24"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "missing cart_value") {
+			t.Errorf("Expected missing cart_value error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Missing user_lat", func(t *testing.T) {
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=100&user_lon=24"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "missing user_lat") {
+			t.Errorf("Expected missing user_lat error, got: %s", rr.Body.String())
+		}
+	})
+
+	t.Run("Validation: Missing user_lon", func(t *testing.T) {
+		url := "/api/v1/delivery-order-price?venue_slug=test&cart_value=100&user_lat=60"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected 400, got %d", rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "missing user_lon") {
+			t.Errorf("Expected missing user_lon error, got: %s", rr.Body.String())
 		}
 	})
 }
