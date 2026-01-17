@@ -18,56 +18,50 @@ type PriceHandler struct {
 
 // New creates a new handler instance
 func New(c *client.APIClient) *PriceHandler {
-	return &PriceHandler{
-		client: c,
-	}
+	return &PriceHandler{client: c}
 }
 
 // HandleRequest is the main entry point for the HTTP traffic
 func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
-	// 1. Method Check
-	// We only allow GET requests. Any other is rejected
+	// Only allow GET requests
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// 2. Parse and Validate Inputs
+	// Parse and validate input parameters
 	venueSlug, deliveryInput, err := parseInput(r)
 	if err != nil {
-		// If inputs are wrong (e.g., text instead of numbers), return 400 Bad Request
+		// Return 400 Bad Request for invalid input
 		http.Error(w, fmt.Sprintf("Invalid input: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// 3. Fetch Data (The Courier)
-	// We use the injected client to get the raw data from Wolt
+	// Fetch venue data from the API
 	staticData, dynamicData, err := h.client.FetchVenueData(venueSlug)
 	if err != nil {
-		// Check if it's a "Not Found" error from Wolt
+		// Map 404 errors to Not Found response
 		if strings.Contains(err.Error(), "404") {
 			http.Error(w, "Venue not found", http.StatusNotFound)
 			return
 		}
 
-		// Otherwise, it's a real server error (500)
+		// Return 500 for other API errors
 		http.Error(w, fmt.Sprintf("Failed to fetch venue data: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// 4. Calculate Price (The Brain)
-	// We pass the clean inputs and the venue data to the calculator
+	// Calculate delivery price
 	priceResponse, err := service.CalculatePrice(deliveryInput, staticData, dynamicData)
 	if err != nil {
-		// If calculation fails (e.g., distance too far), return 400 Bad Request
+		// Return 400 Bad Request for calculation errors
 		http.Error(w, fmt.Sprintf("Calculation error: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// 5. Send Response
-	// We set the header so the browser knows it's JSON
+	// Send JSON response
 	w.Header().Set("Content-Type", "application/json")
-	// We encode the Go struct into JSON and write it to the stream
+	// Encode the response struct to JSON
 	if err := json.NewEncoder(w).Encode(priceResponse); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
@@ -83,7 +77,7 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 	latStr := q.Get("user_lat")
 	lonStr := q.Get("user_lon")
 
-	// 1. Check Slug
+	// Verify venue slug is provided and not too long
 	if slug == "" {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing venue_slug")
 	}
@@ -92,7 +86,7 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 		return "", service.DeliveryInput{}, fmt.Errorf("venue_slug too long")
 	}
 
-	// 2. Check Cart Value (Must be number AND non-negative)
+	// Verify cart value is a valid non-negative integer
 	if cartValStr == "" {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing cart_value")
 	}
@@ -104,7 +98,7 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 		return "", service.DeliveryInput{}, fmt.Errorf("cart_value cannot be negative")
 	}
 
-	// 3. Check Latitude (-90 to 90)
+	// Verify latitude is within valid range (-90 to 90)
 	if latStr == "" {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing user_lat")
 	}
@@ -116,7 +110,7 @@ func parseInput(r *http.Request) (string, service.DeliveryInput, error) {
 		return "", service.DeliveryInput{}, fmt.Errorf("user_lat must be between -90 and 90")
 	}
 
-	// 4. Check Longitude (-180 to 180)
+	// Verify longitude is within valid range (-180 to 180)
 	if lonStr == "" {
 		return "", service.DeliveryInput{}, fmt.Errorf("missing user_lon")
 	}

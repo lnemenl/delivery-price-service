@@ -8,22 +8,17 @@ import (
 
 func TestCalculatePrice(t *testing.T) {
 
-	// =========================================================================
-	// SETTING THE SCENE
-	// =========================================================================
+	// Set up test data
 
-	// 1. The Venue is at (0.0, 0.0)
-	// We use 0,0 because calculating distance from zero is easy to verify
+	// Venue location at origin (0.0, 0.0) for easy distance verification
 	venueLoc := models.VenueStatic{}
 	venueLoc.VenueRaw.Location.Coordinates = []float64{0.0, 0.0}
 
-	// 2. The Rules of the Game
-	// These rules mimic a real response from the Wolt API
-	// - Base Price:    1.90€ (190 cents)
-	// - Minimum Order: 10.00€ (1000 cents)
-	// - Range 1 (0-500m):    Free distance fee. (Price = Base + 0 + 0)
-	// - Range 2 (500-1000m): Expensive (Price = Base + 100 + (5 * distance / 10))
-	// - Range 3 (1000m+):    Impossible (Max=0 means "We do not deliver here")
+	// Pricing configuration mimicking real Wolt API response
+	// Base price: 190 cents, Minimum order: 1000 cents
+	// Range 1 (0-500m): Price = 190 + 0 + 0 = 190
+	// Range 2 (500-1000m): Price = 190 + 100 + (5 * distance / 10)
+	// Range 3 (1000m+): Delivery unavailable (max=0)
 	venueRules := models.VenueDynamic{}
 	venueRules.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = 1000
 	venueRules.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = 190
@@ -33,11 +28,9 @@ func TestCalculatePrice(t *testing.T) {
 		{Min: 1000, Max: 0, A: 0, B: 0},
 	}
 
-	// =========================================================================
-	// CHAPTER 1: THE HAPPY CUSTOMER (Range 1)
-	// Scenario: User is right next to the restaurant (0m). Order is 10€
-	// Expectation: Only Base Price. No Surcharge
-	// =========================================================================
+	// Test: User at venue location with large order
+	// Distance = 0m, Cart = 1000 cents (meets minimum)
+	// Expected: No surcharge, base delivery fee only
 	t.Run("Happy Path: Close distance, large order", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 1000,
@@ -51,27 +44,25 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Expected success, but got error: %v", err)
 		}
 
-		// 1. Surcharge Check (Cart 1000 >= Min 1000) -> 0
+		// Verify surcharge is 0 when cart value meets minimum
 		if resp.SmallOrderSurcharge != 0 {
 			t.Errorf("Expected 0 surcharge, got %d", resp.SmallOrderSurcharge)
 		}
 
-		// 2. Fee Check (Range 1: Base 190 + A 0 + B 0) -> 190
+		// Verify fee = base_price (190) when in range 1
 		if resp.Delivery.Fee != 190 {
 			t.Errorf("Expected 190 fee, got %d", resp.Delivery.Fee)
 		}
 
-		// 3. Total Check (1000 + 0 + 190) -> 1190
+		// Verify total = cart (1000) + surcharge (0) + fee (190) = 1190
 		if resp.TotalPrice != 1190 {
 			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 2: THE SMALL ORDER SURCHARGE
-	// Scenario: User is close, but only buys a healthy salad (8.00€)
-	// Expectation: A 2.00€ surcharge is added to fill the gap to 10.00€
-	// =========================================================================
+	// Test: User at venue with small order below minimum
+	// Distance = 0m, Cart = 800 cents (below 1000 minimum)
+	// Expected: Surcharge = 1000 - 800 = 200 cents
 	t.Run("Logic Check: Small Order Surcharge", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 800, // 8.00€
@@ -84,23 +75,20 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		// Logic: Surcharge = Min (1000) - Cart (800) = 200
+		// Verify surcharge = minimum (1000) - cart (800) = 200
 		if resp.SmallOrderSurcharge != 200 {
 			t.Errorf("Expected surcharge 200, got %d", resp.SmallOrderSurcharge)
 		}
 
-		// Logic: Total = 800 + 200 + 190 = 1190
+		// Verify total = cart (800) + surcharge (200) + fee (190) = 1190
 		if resp.TotalPrice != 1190 {
 			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 3: THE EXPENSIVE ZONE
-	// Scenario: User is 667m away. This falls into Range 2 (500-1000m)
-	// Formula: Base + A + (B * distance / 10)
-	// Values:  190  + 100 + (5.0 * 667 / 10)
-	// =========================================================================
+	// Test: User 667m away in mid-distance range
+	// Distance = 667m (in range 2: 500-1000m)
+	// Fee = base (190) + a (100) + b*dist/10 (5.0 * 667 / 10 = 334)
 	t.Run("Math Check: Complex Calculation with Multiplier B", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 1000,
@@ -113,25 +101,21 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		// Verify Distance
+		// Verify calculated distance
 		if resp.Delivery.Distance != 667 {
 			t.Errorf("Expected distance 667m, got %d", resp.Delivery.Distance)
 		}
 
-		// Verify Fee
-		// Math: (5.0 * 667) / 10  = 3335 / 10 = 333.5
-		// Round(333.5) = 334
-		// Fee = Base(190) + A(100) + B_Component(334) = 624
+		// Verify delivery fee calculation
+		// Fee = base (190) + a (100) + round(5.0 * 667 / 10) = 190 + 100 + 334 = 624
 		if resp.Delivery.Fee != 624 {
 			t.Errorf("Expected fee 624, got %d", resp.Delivery.Fee)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 4: NEGATIVE COORDINATES
-	// Scenario: User is at -0.006 Latitude. Distance should still be positive 667m
-	// This proves Math.Sqrt() logic works for absolute distances
-	// =========================================================================
+	// Test: Negative coordinates produce correct positive distance
+	// User at -0.006 latitude, distance should be 667m (not -667m)
+	// Verifies absolute value handling in distance calculation
 	t.Run("Math Check: Negative Coordinates", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 1000,
@@ -144,17 +128,15 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		// Distance MUST be positive 667, NOT -667
+		// Verify distance is positive 667m
 		if resp.Delivery.Distance != 667 {
 			t.Errorf("Expected distance 667m, got %d", resp.Delivery.Distance)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 5: THE FORBIDDEN ZONE
-	// Scenario: User is 1111m away. Range 3 starts at 1000m and has Max=0
-	// Expectation: The calculator returns an error
-	// =========================================================================
+	// Test: Distance exceeds delivery limit
+	// Distance = 1111m, exceeds range 3 limit (max=0 at min=1000m)
+	// Expected: Error returned, delivery unavailable
 	t.Run("Edge Case: Distance Too Far", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 1000,
@@ -164,17 +146,15 @@ func TestCalculatePrice(t *testing.T) {
 
 		_, err := CalculatePrice(input, venueLoc, venueRules)
 
-		// We EXPECT an error here
+		// Verify error is returned
 		if err == nil {
-			t.Fatal("Expected an error (Too Far), but got success!")
+			t.Fatal("Expected distance too far error, but got success")
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 6: ZERO CART VALUE
-	// Scenario: User orders 0€ worth of items
-	// Expectation: Surcharge is 1000 (full minimum), fee is calculated normally
-	// =========================================================================
+	// Test: Zero cart value applies full minimum surcharge
+	// Cart = 0 cents, Minimum = 1000 cents
+	// Expected: Surcharge = 1000 cents (full minimum)
 	t.Run("Edge Case: Zero Cart Value", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 0,
@@ -187,23 +167,20 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		// Surcharge should be full minimum (1000)
+		// Verify surcharge equals full minimum when cart is zero
 		if resp.SmallOrderSurcharge != 1000 {
 			t.Errorf("Expected surcharge 1000, got %d", resp.SmallOrderSurcharge)
 		}
 
-		// Total should be 0 + 1000 + 190 = 1190
+		// Verify total = cart (0) + surcharge (1000) + fee (190) = 1190
 		if resp.TotalPrice != 1190 {
 			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 7: NEGATIVE B COEFFICIENT
-	// Scenario: B can be negative (example from real data: b = -1)
-	// Formula: Base + A + (B * distance / 10)
-	// If B is negative, it reduces the fee
-	// =========================================================================
+	// Test: Negative B coefficient reduces delivery fee
+	// B can be negative in real pricing (e.g., promotional discounts)
+	// Fee = base (190) + a (1000) + (b * distance / 10)
 	t.Run("Edge Case: Negative B Coefficient", func(t *testing.T) {
 		input := DeliveryInput{
 			CartValue: 1000,
@@ -211,12 +188,12 @@ func TestCalculatePrice(t *testing.T) {
 			UserLon:   0.0,
 		}
 
-		// Custom rules with negative B
+		// Configure pricing with negative B coefficient
 		customRules := models.VenueDynamic{}
 		customRules.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = 1000
 		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = 190
 		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.DistanceRanges = []models.DistanceRange{
-			{Min: 0, Max: 1000, A: 1000, B: -1.0}, // Negative multiplier
+			{Min: 0, Max: 1000, A: 1000, B: -1.0},
 			{Min: 1000, Max: 0, A: 0, B: 0},
 		}
 
@@ -225,10 +202,9 @@ func TestCalculatePrice(t *testing.T) {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 
-		// Distance is 667m
-		// Fee = Base(190) + A(1000) + B_Component(-1.0 * 667 / 10)
-		// B_Component = int(Round(-66.7)) = -67
-		// Fee = 190 + 1000 + (-67) = 1123
+		// Distance = 667m
+		// Fee = base (190) + a (1000) + round(-1.0 * 667 / 10)
+		// Fee = 190 + 1000 + round(-66.7) = 190 + 1000 - 67 = 1123
 		if resp.Delivery.Fee != 1123 {
 			t.Errorf("Expected fee 1123, got %d", resp.Delivery.Fee)
 		}

@@ -15,7 +15,7 @@ type APIClient struct {
 	HTTPClient *http.Client
 }
 
-// New creates a client with a 10-second timeout (standard practice)
+// New creates an API client with a 10-second timeout
 func New() *APIClient {
 	return &APIClient{
 		BaseURL: "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/",
@@ -25,10 +25,9 @@ func New() *APIClient {
 	}
 }
 
-// FetchVenueData orchestrates the two parallel API calls
+// FetchVenueData retrieves both static and dynamic venue data from the API
 func (c *APIClient) FetchVenueData(slug string) (models.VenueStatic, models.VenueDynamic, error) {
-	// 1. Fetch Static Data (Location)
-	// We call our helper function 'get' to do the heavy lifting
+	// Fetch static data (venue location)
 	var static models.VenueStatic
 	urlStatic := c.BaseURL + slug + "/static"
 
@@ -36,7 +35,7 @@ func (c *APIClient) FetchVenueData(slug string) (models.VenueStatic, models.Venu
 		return models.VenueStatic{}, models.VenueDynamic{}, fmt.Errorf("static data error: %w", err)
 	}
 
-	// 2. Fetch Dynamic Data (Pricing Rules)
+	// Fetch dynamic data (pricing and delivery specifications)
 	var dynamic models.VenueDynamic
 	urlDynamic := c.BaseURL + slug + "/dynamic"
 

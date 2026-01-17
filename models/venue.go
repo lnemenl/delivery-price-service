@@ -1,7 +1,6 @@
 package models
 
-// VenueStatic holds the location data from the static API
-// We use inline structs for the wrappers to keep the code concise
+// VenueStatic contains location data from the static API endpoint
 type VenueStatic struct {
 	VenueRaw struct {
 		Location struct {
@@ -10,7 +9,7 @@ type VenueStatic struct {
 	} `json:"venue_raw"`
 }
 
-// VenueDynamic holds the pricing rules from the dynamic API
+// VenueDynamic contains delivery specifications from the dynamic API endpoint
 type VenueDynamic struct {
 	VenueRaw struct {
 		DeliverySpecs struct {
@@ -20,8 +19,7 @@ type VenueDynamic struct {
 	} `json:"venue_raw"`
 }
 
-// DeliveryPricing defines the base price and the list of distance rules
-// We name this struct because we pass it around in the Calculator
+// DeliveryPricing contains pricing configuration and distance-based fee rules
 type DeliveryPricing struct {
 	BasePrice      int             `json:"base_price"`
 	DistanceRanges []DistanceRange `json:"distance_ranges"`

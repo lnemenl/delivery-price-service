@@ -9,18 +9,14 @@ import (
 
 func TestFetchVenueData(t *testing.T) {
 
-	// =========================================================================
-	// 1. SETTING THE SCENE (The Fake Internet)
-	// We create a local web server to mimic Wolt. This allows us to test
-	// without actual internet access and ensures consistent results
-	// =========================================================================
+	// Set up mock API server to simulate Wolt API
+	// This allows testing without external network dependencies
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// SCENARIO: Client asks for STATIC data
-		// We listen for the specific URL ending in "/static"
+		// Handle requests for static venue data
 		if r.URL.Path == "/test-venue/static" {
 			w.WriteHeader(http.StatusOK)
-			// Return minimal valid JSON for location
+			// Return venue location coordinates
 			w.Write([]byte(`{
 				"venue_raw": {
 					"location": {
@@ -31,11 +27,10 @@ func TestFetchVenueData(t *testing.T) {
 			return
 		}
 
-		// SCENARIO: Client asks for DYNAMIC data
-		// We listen for the specific URL ending in "/dynamic"
+		// Handle requests for dynamic pricing data
 		if r.URL.Path == "/test-venue/dynamic" {
 			w.WriteHeader(http.StatusOK)
-			// Return minimal valid JSON for pricing
+			// Return pricing and delivery specifications
 			w.Write([]byte(`{
 				"venue_raw": {
 					"delivery_specs": {
@@ -50,33 +45,29 @@ func TestFetchVenueData(t *testing.T) {
 			return
 		}
 
-		// FALLBACK: If the URL is wrong, return 404 Not Found
+		// Return 404 for unknown routes
 		w.WriteHeader(http.StatusNotFound)
 	}))
-	// Clean up: Shut down the server when the test finishes
+	// Clean up mock server after test
 	defer mockServer.Close()
 
-	// =========================================================================
-	// CHAPTER 1: THE SUCCESSFUL DOWNLOAD
-	// Scenario: Everything works. We ask for "test-venue", and the mock server
-	// returns valid JSON for both static and dynamic calls
-	// =========================================================================
+	// Test: Successful fetch of both static and dynamic data
+	// Mock server returns valid JSON for test-venue
 	t.Run("Happy Path: Success Fetch", func(t *testing.T) {
-		// 1. Setup the Tool
+		// Create API client instance
 		api := New()
-		// CRITICAL: We override the BaseURL to point to our local mock server
-		// instead of the real Wolt API
+		// Override base URL to point to local mock server
 		api.BaseURL = mockServer.URL + "/"
 
-		// 2. Action: Call the function
+		// Call FetchVenueData
 		static, dynamic, err := api.FetchVenueData("test-venue")
 
-		// 3. Assertions
+		// Verify both static and dynamic data are correctly decoded
 		if err != nil {
 			t.Fatalf("Expected success, but got error: %v", err)
 		}
 
-		// Check if Static data was correctly decoded
+		// Verify static data coordinates
 		if len(static.VenueRaw.Location.Coordinates) != 2 {
 			t.Errorf("Expected 2 coordinates, got %d", len(static.VenueRaw.Location.Coordinates))
 		}
@@ -84,32 +75,27 @@ func TestFetchVenueData(t *testing.T) {
 			t.Errorf("Expected lon 24.93, got %f", static.VenueRaw.Location.Coordinates[0])
 		}
 
-		// Check if Dynamic data was correctly decoded
+		// Verify dynamic data pricing
 		if dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice != 190 {
 			t.Errorf("Expected base price 190, got %d", dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice)
 		}
 	})
 
-	// =========================================================================
-	// CHAPTER 2: THE BROKEN LINK
-	// Scenario: We ask for a venue that doesn't exist ("wrong-venue")
-	// The mock server will return 404 (Not Found)
-	// =========================================================================
+	// Test: Proper error handling for non-existent venue
+	// Mock server returns 404 for unknown venue
 	t.Run("Sad Path: Dynamic Endpoint Fails", func(t *testing.T) {
 		api := New()
 		api.BaseURL = mockServer.URL + "/"
 
-		// We ask for "wrong-venue". Our mock server logic above defaults to 404
+		// Request non-existent venue
 		_, _, err := api.FetchVenueData("wrong-venue")
 
-		// We expect an error here.
+		// Verify error is returned
 		if err == nil {
 			t.Fatal("Expected an error (404), but got success")
 		}
 
-		// Verify the error message is what we expect
-		// The client.go adds context "static data error: ..." or "dynamic data error: ..."
-		// Since static is called first, it should fail there first
+		// Verify error message includes context about which endpoint failed
 		expectedError := "API returned status: 404"
 		if fmt.Sprintf("%s", err) != "static data error: "+expectedError {
 			t.Logf("Got expected error: %v", err)

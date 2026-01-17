@@ -1,6 +1,6 @@
 package models
 
-// PriceResponse is the final JSON payload we send to the client.
+// PriceResponse represents the delivery price calculation response
 type PriceResponse struct {
 	TotalPrice          int             `json:"total_price"`
 	SmallOrderSurcharge int             `json:"small_order_surcharge"`
@@ -8,7 +8,7 @@ type PriceResponse struct {
 	Delivery            DeliveryDetails `json:"delivery"`
 }
 
-// DeliveryDetails holds the breakdown of the delivery cost
+// DeliveryDetails contains fee and distance information
 type DeliveryDetails struct {
 	Fee      int `json:"fee"`
 	Distance int `json:"distance"`
