@@ -213,4 +213,19 @@ func TestHandleRequest(t *testing.T) {
 			t.Errorf("Expected slug length error, got: %s", rr.Body.String())
 		}
 	})
+
+	t.Run("System: Upstream 404 (Venue Not Found)", func(t *testing.T) {
+		// Scenario: User asks for "ghost-venue".
+		// Our mock server defaults to 404 for unknown paths, so this simulates a missing venue.
+		url := "/api/v1/delivery-order-price?venue_slug=ghost-venue&cart_value=1000&user_lat=60.17&user_lon=24.93"
+		req := httptest.NewRequest(http.MethodGet, url, nil)
+		rr := httptest.NewRecorder()
+
+		handler.HandleRequest(rr, req)
+
+		// Expect 404 Not Found (NOT 500)
+		if rr.Code != http.StatusNotFound {
+			t.Errorf("Expected 404 Not Found, got %d", rr.Code)
+		}
+	})
 }

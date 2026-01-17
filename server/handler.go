@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/lnemenl/wolt_1/client"
 	"github.com/lnemenl/wolt_1/service"
@@ -43,7 +44,13 @@ func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	// We use the injected client to get the raw data from Wolt
 	staticData, dynamicData, err := h.client.FetchVenueData(venueSlug)
 	if err != nil {
-		// If the external API fails, we return 500 Internal Server Error
+		// Check if it's a "Not Found" error from Wolt
+		if strings.Contains(err.Error(), "404") {
+			http.Error(w, "Venue not found", http.StatusNotFound)
+			return
+		}
+
+		// Otherwise, it's a real server error (500)
 		http.Error(w, fmt.Sprintf("Failed to fetch venue data: %v", err), http.StatusInternalServerError)
 		return
 	}
