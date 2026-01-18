@@ -40,7 +40,7 @@ go test ./...
 ---
 
 ## Features & Implementation
-*   **Correctness:** Validated against all requirements in the spec.
+*   **Implementation:** Validated against all requirements in the spec.
 *   **Concurrency:** Fetches venue static and dynamic data **in parallel** to minimize latency.
 *   **Architecture:** Separated into `server` (HTTP), `service` (Logic), and `client` (External API) layers.
 *   **Safety:** Strict validation for inputs (coordinates, negative values) and robust error handling.
