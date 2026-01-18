@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/lnemenl/wolt_1/models"
@@ -27,20 +28,39 @@ func New() *APIClient {
 
 // FetchVenueData retrieves both static and dynamic venue data from the API
 func (c *APIClient) FetchVenueData(slug string) (models.VenueStatic, models.VenueDynamic, error) {
-	// Fetch static data (venue location)
-	var static models.VenueStatic
-	urlStatic := c.BaseURL + slug + "/static"
+	var (
+		static  models.VenueStatic
+		dynamic models.VenueDynamic
+		wg      sync.WaitGroup
+		errChan = make(chan error, 2)
+	)
 
-	if err := c.get(urlStatic, &static); err != nil {
-		return models.VenueStatic{}, models.VenueDynamic{}, fmt.Errorf("static data error: %w", err)
-	}
+	wg.Add(2)
+
+	// Fetch static data (venue location)
+	go func() {
+		defer wg.Done()
+		urlStatic := c.BaseURL + slug + "/static"
+		if err := c.get(urlStatic, &static); err != nil {
+			errChan <- fmt.Errorf("static data error: %w", err)
+		}
+	}()
 
 	// Fetch dynamic data (pricing and delivery specifications)
-	var dynamic models.VenueDynamic
-	urlDynamic := c.BaseURL + slug + "/dynamic"
+	go func() {
+		defer wg.Done()
+		urlDynamic := c.BaseURL + slug + "/dynamic"
+		if err := c.get(urlDynamic, &dynamic); err != nil {
+			errChan <- fmt.Errorf("dynamic data error: %w", err)
+		}
+	}()
 
-	if err := c.get(urlDynamic, &dynamic); err != nil {
-		return models.VenueStatic{}, models.VenueDynamic{}, fmt.Errorf("dynamic data error: %w", err)
+	wg.Wait()
+	close(errChan)
+
+	// If we encountered any errors, return the first one
+	if err := <-errChan; err != nil {
+		return models.VenueStatic{}, models.VenueDynamic{}, err
 	}
 
 	return static, dynamic, nil

@@ -32,8 +32,22 @@ func TestHandleRequest(t *testing.T) {
 		// Return dynamic pricing data for test-venue
 		if strings.Contains(r.URL.Path, "test-venue") && strings.Contains(r.URL.Path, "/dynamic") {
 			w.WriteHeader(http.StatusOK)
-			// Max delivery distance set to 1000m
-			w.Write([]byte(`{"venue_raw": {"delivery_specs": {"order_minimum_no_surcharge": 1000, "delivery_pricing": {"base_price":190, "distance_ranges": [{"min":0, "max":1000, "a":0, "b":0}]}}}}`))
+			// Max delivery distance set to 1000m. We add the closing range {min:1000, max:0} to simulate "too far".
+			response := `{
+				"venue_raw": {
+					"delivery_specs": {
+						"order_minimum_no_surcharge": 1000,
+						"delivery_pricing": {
+							"base_price": 190,
+							"distance_ranges": [
+								{"min": 0, "max": 1000, "a": 0, "b": 0},
+								{"min": 1000, "max": 0, "a": 0, "b": 0}
+							]
+						}
+					}
+				}
+			}`
+			w.Write([]byte(response))
 			return
 		}
 
@@ -93,7 +107,7 @@ func TestHandleRequest(t *testing.T) {
 			t.Errorf("Expected 400 (Too Far), got %d", rr.Code)
 		}
 		// Verify error message indicates distance issue
-		if !strings.Contains(rr.Body.String(), "no matching") {
+		if !strings.Contains(rr.Body.String(), "delivery distance too long") {
 			t.Errorf("Expected 'too long' error, got: %s", rr.Body.String())
 		}
 	})

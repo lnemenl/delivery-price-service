@@ -1,9 +1,9 @@
 package client
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -95,13 +95,17 @@ func TestFetchVenueData(t *testing.T) {
 			t.Fatal("Expected an error (404), but got success")
 		}
 
-		// Verify error message includes context about which endpoint failed
-		expectedError := "API returned status: 404"
-		actualError := fmt.Sprintf("%s", err)
-		expectedFullError := "static data error: " + expectedError
+		// Verify error message includes context about the failure
+		// Since requests are concurrent, either static or dynamic endpoint might fail first
+		actualError := err.Error()
+		expectedStatus := "API returned status: 404"
 
-		if actualError != expectedFullError {
-			t.Errorf("Expected error %q, but got %q", expectedFullError, actualError)
+		if !strings.Contains(actualError, expectedStatus) {
+			t.Errorf("Expected error containing %q, but got %q", expectedStatus, actualError)
+		}
+
+		if !strings.Contains(actualError, "static data error") && !strings.Contains(actualError, "dynamic data error") {
+			t.Errorf("Expected error to be about static or dynamic data, got %q", actualError)
 		}
 	})
 }
