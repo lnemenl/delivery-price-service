@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"github.com/lnemenl/wolt_1/models"
+	"github.com/lnemenl/delivery-price-service/models"
 )
 
 func TestCalculatePrice(t *testing.T) {

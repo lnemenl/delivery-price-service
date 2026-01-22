@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/lnemenl/wolt_1/models"
+	"github.com/lnemenl/delivery-price-service/models"
 )
 
 // DeliveryInput groups the user-provided data
@@ -87,15 +87,13 @@ func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
 	dLat := toRad(venueLat - userLat)
 	dLon := toRad(venueLon - userLon)
 
-	// Apply Haversine formula: a = sin²(Δlat/2) + cos(lat1)·cos(lat2)·sin²(Δlon/2)
+	// Haversine formula
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
 
-	// c = 2·atan2(√a, √(1−a))
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
-	// Calculate distance = R·c
 	distance := R * c
 
 	return int(math.Round(distance))

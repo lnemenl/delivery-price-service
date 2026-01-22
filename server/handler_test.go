@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lnemenl/wolt_1/client"
-	"github.com/lnemenl/wolt_1/models"
+	"github.com/lnemenl/delivery-price-service/client"
+	"github.com/lnemenl/delivery-price-service/models"
 )
 
 func TestHandleRequest(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lnemenl/wolt_1/client"
-	"github.com/lnemenl/wolt_1/service"
+	"github.com/lnemenl/delivery-price-service/client"
+	"github.com/lnemenl/delivery-price-service/service"
 )
 
 // PriceHandler holds the dependencies needed to process a request

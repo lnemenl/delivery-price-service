@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lnemenl/wolt_1/models"
+	"github.com/lnemenl/delivery-price-service/models"
 )
 
 // APIClient holds the configuration for connecting to Wolt
