@@ -10,6 +10,8 @@ import (
 	"github.com/lnemenl/delivery-price-service/models"
 )
 
+const DefaultBaseURL = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
+
 // APIClient holds the configuration for connecting to Wolt
 type APIClient struct {
 	BaseURL    string
@@ -19,7 +21,7 @@ type APIClient struct {
 // New creates an API client with a 10-second timeout
 func New() *APIClient {
 	return &APIClient{
-		BaseURL: "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/",
+		BaseURL: DefaultBaseURL,
 		HTTPClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},

@@ -52,23 +52,6 @@ func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic mode
 	}, nil
 }
 
-// // calculateDistance returns straight-line distance in meters
-// func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
-// 	venueLon := venueCoords[0]
-// 	venueLat := venueCoords[1]
-
-// 	// Conversion constant: 1 degree latitude ~= 111,139 meters
-// 	const metersPerDegree = 111139.0
-
-// 	latDist := (userLat - venueLat) * metersPerDegree
-// 	lonDist := (userLon - venueLon) * metersPerDegree
-
-// 	// Pythagoras: c = sqrt(a^2 + b^2)
-// 	distInMeters := math.Sqrt(latDist*latDist + lonDist*lonDist)
-
-// 	return int(math.Round(distInMeters))
-// }
-
 // Use Haversine formula to calculate accurate distance on Earth surface
 func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
 	venueLon := venueCoords[0]
