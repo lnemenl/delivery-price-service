@@ -2,10 +2,15 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"math"
 
 	"github.com/lnemenl/delivery-price-service/models"
 )
+
+var ErrDistanceTooLong = errors.New("delivery distance too long")
+var ErrNoRangeFound = errors.New("no matching delivery range found")
+var ErrInvalidVenueData = errors.New("venue location data is incomplete")
 
 // DeliveryInput groups the user-provided data
 type DeliveryInput struct {
@@ -20,7 +25,7 @@ func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic mode
 	venueCoords := static.VenueRaw.Location.Coordinates
 	// Verify venue location data contains both latitude and longitude
 	if len(venueCoords) < 2 {
-		return models.PriceResponse{}, errors.New("venue location data is incomplete")
+		return models.PriceResponse{}, fmt.Errorf("%w: expected 2 coordinates, got %d", ErrInvalidVenueData, len(venueCoords))
 	}
 	distance := calculateDistance(input.UserLat, input.UserLon, venueCoords)
 
@@ -92,7 +97,8 @@ func calculateFee(distance int, pricing models.DeliveryPricing) (int, error) {
 		if distance >= r.Min {
 			// Check if delivery is available (max=0 means distance limit reached)
 			if r.Max == 0 {
-				return 0, errors.New("delivery distance too long")
+				// Wrap error
+				return 0, fmt.Errorf("%w: %d meters", ErrDistanceTooLong, distance)
 			}
 
 			// Calculate fee for distance within range
@@ -104,5 +110,5 @@ func calculateFee(distance int, pricing models.DeliveryPricing) (int, error) {
 		}
 	}
 
-	return 0, errors.New("no matching delivery range found")
+	return 0, fmt.Errorf("%w: %d meters", ErrNoRangeFound, distance)
 }

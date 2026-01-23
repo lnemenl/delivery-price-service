@@ -2,10 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/lnemenl/delivery-price-service/client"
 	"github.com/lnemenl/delivery-price-service/service"
@@ -41,7 +41,7 @@ func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	staticData, dynamicData, err := h.client.FetchVenueData(r.Context(), venueSlug)
 	if err != nil {
 		// Map 404 errors to Not Found response
-		if strings.Contains(err.Error(), "404") {
+		if errors.Is(err, client.ErrVenueNotFound) {
 			http.Error(w, "Venue not found", http.StatusNotFound)
 			return
 		}
@@ -54,7 +54,20 @@ func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	// Calculate delivery price
 	priceResponse, err := service.CalculatePrice(deliveryInput, staticData, dynamicData)
 	if err != nil {
-		// Return 400 Bad Request for calculation errors
+		// Use errors.Is to check for specific errors
+		if errors.Is(err, service.ErrDistanceTooLong) || errors.Is(err, service.ErrNoRangeFound) {
+			// Return 400 with a specific message for distance issues
+			http.Error(w, fmt.Sprintf("Delivery not possible: %v", err), http.StatusBadRequest)
+			return
+		}
+		// If the venue data itself is invalid (missing coordinates),
+		// that's an external dependency failure (500)
+		// not a user input error (400)
+		if errors.Is(err, service.ErrInvalidVenueData) {
+			http.Error(w, fmt.Sprintf("Upstream data error: %v", err), http.StatusBadGateway)
+			return
+		}
+		// Return 400 Bad Request for other calculation errors (like missing data)
 		http.Error(w, fmt.Sprintf("Calculation error: %v", err), http.StatusBadRequest)
 		return
 	}

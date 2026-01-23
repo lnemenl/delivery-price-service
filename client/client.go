@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -13,6 +14,9 @@ import (
 )
 
 const DefaultBaseURL = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
+
+// When the external API responds with 404
+var ErrVenueNotFound = errors.New("venue not found")
 
 // APIClient holds the configuration for connecting to Wolt
 type APIClient struct {
@@ -86,6 +90,10 @@ func (c *APIClient) get(ctx context.Context, url string, target interface{}) err
 
 	// Check Status Code
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			// Wrap error
+			return fmt.Errorf("API 404: %w", ErrVenueNotFound)
+		}
 		return fmt.Errorf("API returned status: %d", resp.StatusCode)
 	}
 

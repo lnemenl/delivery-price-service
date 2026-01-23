@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -96,15 +97,13 @@ func TestFetchVenueData(t *testing.T) {
 			t.Fatal("Expected an error (404), but got success")
 		}
 
-		// Verify error message includes context about the failure
-		// Since requests are concurrent, either static or dynamic endpoint might fail first
-		actualError := err.Error()
-		expectedStatus := "API returned status: 404"
-
-		if !strings.Contains(actualError, expectedStatus) {
-			t.Errorf("Expected error containing %q, but got %q", expectedStatus, actualError)
+		// Verify error type using errors.Is
+		if !errors.Is(err, ErrVenueNotFound) {
+			t.Errorf("Expected error to wrap ErrVenueNotFound, got: %v", err)
 		}
 
+		// Verify context wrapping
+		actualError := err.Error()
 		if !strings.Contains(actualError, "static data error") && !strings.Contains(actualError, "dynamic data error") {
 			t.Errorf("Expected error to be about static or dynamic data, got %q", actualError)
 		}
