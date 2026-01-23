@@ -4,10 +4,21 @@ A Go microservice that calculates delivery fees based on user location and cart 
 
 ## Features
 
-- **Concurrent Data Fetching**: Retrieves static (location) and dynamic (pricing) data in parallel.
+- **Concurrent Data Fetching**: Retrieves static (location) and dynamic (pricing) data in parallel using `errgroup` for efficient error handling and request cancellation.
 - **Geodetic Accuracy**: Uses the Haversine formula for precise distance calculations.
 - **Robust Error Handling**: Distinguishes between client input errors (400) and system failures (500).
 - **Production Ready**: Configured with strict timeouts and clean separation of concerns.
+
+## Design Decisions
+
+### Concurrency
+I chose `errgroup` over `sync.WaitGroup` to orchestrate parallel API requests. This ensures that if the Static API call fails, the Dynamic API call is automatically canceled to save resources, and the first error is effectively propagated up the stack.
+
+### Testing
+The project uses `httptest.NewServer` to mock external dependencies. This allows for:
+- Offline testing
+- Deterministic results
+- Simulation of edge cases (e.g., API returning 404 or malformed JSON)
 
 ## Running the Service
 
