@@ -38,7 +38,7 @@ func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch venue data from the API
-	staticData, dynamicData, err := h.client.FetchVenueData(venueSlug)
+	staticData, dynamicData, err := h.client.FetchVenueData(r.Context(), venueSlug)
 	if err != nil {
 		// Map 404 errors to Not Found response
 		if strings.Contains(err.Error(), "404") {

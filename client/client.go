@@ -1,11 +1,13 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/lnemenl/delivery-price-service/models"
 )
@@ -29,50 +31,48 @@ func New() *APIClient {
 }
 
 // FetchVenueData retrieves both static and dynamic venue data from the API
-func (c *APIClient) FetchVenueData(slug string) (models.VenueStatic, models.VenueDynamic, error) {
+func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.VenueStatic, models.VenueDynamic, error) {
+	// Create an errgroup derived from the parent context.
+	// If one goroutine returns an error, 'groupCtx' will be canceled immediately.
+	g, groupCtx := errgroup.WithContext(ctx)
+
 	var (
 		static  models.VenueStatic
 		dynamic models.VenueDynamic
-		wg      sync.WaitGroup
-		errChan = make(chan error, 2)
 	)
 
-	wg.Add(2)
-
-	// Fetch static data (venue location)
-	go func() {
-		defer wg.Done()
-		urlStatic := c.BaseURL + slug + "/static"
-		if err := c.get(urlStatic, &static); err != nil {
-			errChan <- fmt.Errorf("static data error: %w", err)
+	// Fetch Static Data
+	g.Go(func() error {
+		// Use groupCtx so this request is canceled if the other one fails
+		urlStatic := fmt.Sprintf("%s%s/static", c.BaseURL, slug)
+		if err := c.get(groupCtx, urlStatic, &static); err != nil {
+			return fmt.Errorf("static data error: %w", err)
 		}
-	}()
+		return nil
+	})
 
-	// Fetch dynamic data (pricing and delivery specifications)
-	go func() {
-		defer wg.Done()
-		urlDynamic := c.BaseURL + slug + "/dynamic"
-		if err := c.get(urlDynamic, &dynamic); err != nil {
-			errChan <- fmt.Errorf("dynamic data error: %w", err)
+	// Fetch Dynamic Data
+	g.Go(func() error {
+		urlDynamic := fmt.Sprintf("%s%s/dynamic", c.BaseURL, slug)
+		if err := c.get(groupCtx, urlDynamic, &dynamic); err != nil {
+			return fmt.Errorf("dynamic data error: %w", err)
 		}
-	}()
+		return nil
+	})
 
-	wg.Wait()
-	close(errChan)
-
-	// If we encountered any errors, return the first one
-	if err := <-errChan; err != nil {
+	// Wait blocks until all goroutines function have returned.
+	// It returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
 		return models.VenueStatic{}, models.VenueDynamic{}, err
 	}
 
 	return static, dynamic, nil
 }
 
-// get is a private helper that performs the HTTP Request and Decodes the JSON
-// target interface{} allows to pass ANY struct (Static or Dynamic) to be filled
-func (c *APIClient) get(url string, target interface{}) error {
-	// Create Request
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+// get is a private helper that performs the HTTP Request with Context
+func (c *APIClient) get(ctx context.Context, url string, target interface{}) error {
+	// Use NewRequestWithContext to enable cancellation
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -60,7 +61,7 @@ func TestFetchVenueData(t *testing.T) {
 		api.BaseURL = mockServer.URL + "/"
 
 		// Call FetchVenueData
-		static, dynamic, err := api.FetchVenueData("test-venue")
+		static, dynamic, err := api.FetchVenueData(context.Background(), "test-venue")
 
 		// Verify both static and dynamic data are correctly decoded
 		if err != nil {
@@ -88,7 +89,7 @@ func TestFetchVenueData(t *testing.T) {
 		api.BaseURL = mockServer.URL + "/"
 
 		// Request non-existent venue
-		_, _, err := api.FetchVenueData("wrong-venue")
+		_, _, err := api.FetchVenueData(context.Background(), "wrong-venue")
 
 		// Verify error is returned
 		if err == nil {
