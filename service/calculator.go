@@ -27,7 +27,7 @@ func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic mode
 	if len(venueCoords) < 2 {
 		return models.PriceResponse{}, fmt.Errorf("%w: expected 2 coordinates, got %d", ErrInvalidVenueData, len(venueCoords))
 	}
-	distance := calculateDistance(input.UserLat, input.UserLon, venueCoords)
+	distance := calculateDistance(input.UserLat, input.UserLon, [2]float64{venueCoords[0], venueCoords[1]})
 
 	// Calculate delivery fee based on distance and pricing rules
 	pricing := dynamic.VenueRaw.DeliverySpecs.DeliveryPricing
@@ -58,7 +58,7 @@ func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic mode
 }
 
 // Use Haversine formula to calculate accurate distance on Earth surface
-func calculateDistance(userLat, userLon float64, venueCoords []float64) int {
+func calculateDistance(userLat, userLon float64, venueCoords [2]float64) int {
 	venueLon := venueCoords[0]
 	venueLat := venueCoords[1]
 

@@ -178,6 +178,50 @@ func TestCalculatePrice(t *testing.T) {
 		}
 	})
 
+	// Test: Missing venue coordinates raises error
+	// Venue has empty coordinates slice
+	// Expected: Error returned with validation message
+	t.Run("Error Case: Missing Venue Coordinates", func(t *testing.T) {
+		input := DeliveryInput{
+			CartValue: 1000,
+			UserLat:   0.0,
+			UserLon:   0.0,
+		}
+
+		// Empty coordinates
+		emptyVenue := models.VenueStatic{}
+		emptyVenue.VenueRaw.Location.Coordinates = []float64{}
+
+		_, err := CalculatePrice(input, emptyVenue, venueRules)
+
+		// Verify error is returned
+		if err == nil {
+			t.Fatal("Expected invalid venue data error, but got success")
+		}
+	})
+
+	// Test: Nil venue coordinates raises error
+	// Venue has nil coordinates slice
+	// Expected: Error returned with validation message
+	t.Run("Error Case: Nil Venue Coordinates", func(t *testing.T) {
+		input := DeliveryInput{
+			CartValue: 1000,
+			UserLat:   0.0,
+			UserLon:   0.0,
+		}
+
+		// Nil coordinates
+		nilVenue := models.VenueStatic{}
+		nilVenue.VenueRaw.Location.Coordinates = nil
+
+		_, err := CalculatePrice(input, nilVenue, venueRules)
+
+		// Verify error is returned
+		if err == nil {
+			t.Fatal("Expected invalid venue data error, but got success")
+		}
+	})
+
 	// Test: Negative B coefficient reduces delivery fee
 	// B can be negative in real pricing (e.g., promotional discounts)
 	// Fee = base (190) + a (1000) + (b * distance / 10)
