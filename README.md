@@ -27,7 +27,7 @@ The project uses `httptest.NewServer` to mock external dependencies. This allows
 
 ### Start Server
 ```bash
-go run main.go
+go run .
 ```
 The server starts on port `8000`.
 
