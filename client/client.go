@@ -74,7 +74,7 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 }
 
 // get is a private helper that performs the HTTP Request with Context
-func (c *APIClient) get(ctx context.Context, url string, target interface{}) error {
+func (c *APIClient) get(ctx context.Context, url string, target any) error {
 	// Use NewRequestWithContext to enable cancellation
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
