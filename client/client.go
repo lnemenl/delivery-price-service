@@ -13,8 +13,6 @@ import (
 	"github.com/lnemenl/delivery-price-service/models"
 )
 
-const DefaultBaseURL = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
-
 // When the external API responds with 404
 var ErrVenueNotFound = errors.New("venue not found")
 
@@ -25,11 +23,11 @@ type APIClient struct {
 }
 
 // New creates an API client with a 10-second timeout
-func New() *APIClient {
+func New(baseURL string, timeout time.Duration) *APIClient {
 	return &APIClient{
-		BaseURL: DefaultBaseURL,
+		BaseURL: baseURL,
 		HTTPClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: timeout,
 		},
 	}
 }

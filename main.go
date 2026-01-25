@@ -10,8 +10,11 @@ import (
 )
 
 func main() {
+
+	cfg := LoadConfig()
+
 	// Initialize the API Client with a 10-second timeout
-	apiClient := client.New()
+	apiClient := client.New(cfg.BaseURL, cfg.Timeout)
 
 	// Initialize the handler and inject the API client
 	priceHandler := server.New(apiClient)
@@ -23,16 +26,15 @@ func main() {
 	router.Setup()
 
 	// Configure the server with timeouts to ensure reliability
-	port := ":8000"
 	srv := &http.Server{
-		Addr:         port,
+		Addr:         cfg.Port,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	// Start the server
-	log.Printf("Server starting on port %s...", port)
+	log.Printf("Server starting on port %s...", cfg.Port)
 
 	// ListenAndServe blocks forever; if it returns, something went wrong
 	if err := srv.ListenAndServe(); err != nil {

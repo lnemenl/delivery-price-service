@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/lnemenl/delivery-price-service/client"
 	"github.com/lnemenl/delivery-price-service/models"
@@ -56,7 +57,7 @@ func TestHandleRequest(t *testing.T) {
 	defer mockWoltAPI.Close()
 
 	// Create handler instance with mock API client
-	apiClient := client.New()
+	apiClient := client.New(mockWoltAPI.URL+"/", 10*time.Second)
 	apiClient.BaseURL = mockWoltAPI.URL + "/"
 	handler := New(apiClient)
 

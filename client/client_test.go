@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFetchVenueData(t *testing.T) {
@@ -57,7 +58,7 @@ func TestFetchVenueData(t *testing.T) {
 	// Mock server returns valid JSON for test-venue
 	t.Run("Happy Path: Success Fetch", func(t *testing.T) {
 		// Create API client instance
-		api := New()
+		api := New(mockServer.URL+"/", 10*time.Second)
 		// Override base URL to point to local mock server
 		api.BaseURL = mockServer.URL + "/"
 
@@ -86,7 +87,7 @@ func TestFetchVenueData(t *testing.T) {
 	// Test: Proper error handling for non-existent venue
 	// Mock server returns 404 for unknown venue
 	t.Run("Sad Path: Dynamic Endpoint Fails", func(t *testing.T) {
-		api := New()
+		api := New(mockServer.URL+"/", 10*time.Second)
 		api.BaseURL = mockServer.URL + "/"
 
 		// Request non-existent venue
