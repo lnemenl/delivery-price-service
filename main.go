@@ -19,8 +19,8 @@ func main() {
 	// Initialize a new ServeMux to isolate routes
 	mux := http.NewServeMux()
 
-	// Register the API endpoint
-	mux.HandleFunc("/api/v1/delivery-order-price", priceHandler.HandleRequest)
+	router := server.NewRouter(mux, priceHandler)
+	router.Setup()
 
 	// Configure the server with timeouts to ensure reliability
 	port := ":8000"
