@@ -90,24 +90,20 @@ func calculateDistance(userLat, userLon float64, venueCoords [2]float64) int {
 // Find the matching distance range and calculate delivery fee
 func calculateFee(distance int, pricing models.DeliveryPricing) (int, error) {
 	for _, r := range pricing.DistanceRanges {
-		// Check if distance falls within current range:
-		// Range is [min, max) - minimum inclusive, maximum exclusive
-		// Exception: max=0 means delivery unavailable for distances >= min
-
-		if distance >= r.Min {
-			// Check if delivery is available (max=0 means distance limit reached)
-			if r.Max == 0 {
-				// Wrap error
-				return 0, fmt.Errorf("%w: %d meters", ErrDistanceTooLong, distance)
-			}
-
-			// Calculate fee for distance within range
-			if distance < r.Max {
-				// Fee formula: base_price + a + round(b * distance / 10)
-				componentB := int(math.Round(r.B * float64(distance) / 10.0))
-				return pricing.BasePrice + r.A + componentB, nil
-			}
+		if distance < r.Min {
+			continue
 		}
+
+		if r.Max == 0 {
+			return 0, fmt.Errorf("%w: %d meters", ErrDistanceTooLong, distance)
+		}
+
+		if distance >= r.Max {
+			continue
+		}
+
+		componentB := int(math.Round(r.B * float64(distance) / 10.0))
+		return pricing.BasePrice + r.A + componentB, nil
 	}
 
 	return 0, fmt.Errorf("%w: %d meters", ErrNoRangeFound, distance)
