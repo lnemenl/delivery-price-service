@@ -27,9 +27,9 @@ go run . -port :9090 -timeout 5s
 
 | Flag | Description |
 |:---|:---|
-| `-port` | Which port to listen on (Default: `:8000`) |
-| `-base-url` | The external API address to get venue data (Default: `https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/`) |
-| `-timeout` | How long to wait for the external API before giving up (Default: `10s`) |
+| `-port` | Which port to listen on |
+| `-base-url` | The external API address to get venue data |
+| `-timeout` | How long to wait for the external API before giving up |
 
 ## Design & Architecture
 
