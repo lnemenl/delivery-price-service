@@ -73,13 +73,6 @@ go test ./...
 
 For manual testing scenarios, see [MANUAL_TESTS.md](MANUAL_TESTS.md).
 
-### Why "Race Conditions" are impossible here
-A "Race Condition" happens when two parts of the code try to change the same variable at the exact same time, causing crashes.
-
-This code is **Thread-Safe** because:
-1.  **Isolation:** Every time a user sends a request, the code creates a brand new, empty set of variables just for that user.
-2.  **No Globals:** I avoided using global variables that are shared across the whole application.
-3.  **Safe Parallelism:** When I fetch data in parallel, I assign the results to two completely different variables, so they never fight over the same memory space.
 
 ## API Reference
 
