@@ -14,7 +14,7 @@ import (
 
 func TestHandleRequest(t *testing.T) {
 
-	// Set up mock API server for testing
+	// Set up mock API server
 	mockWoltAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Return internal server error for broken-venue to simulate API failure
@@ -33,7 +33,7 @@ func TestHandleRequest(t *testing.T) {
 		// Return dynamic pricing data for test-venue
 		if strings.Contains(r.URL.Path, "test-venue") && strings.Contains(r.URL.Path, "/dynamic") {
 			w.WriteHeader(http.StatusOK)
-			// Max delivery distance set to 1000m. We add the closing range {min:1000, max:0} to simulate "too far".
+			// Max delivery distance set to 1000m. Added the closing range {min:1000, max:0} to simulate "too far".
 			response := `{
 				"venue_raw": {
 					"delivery_specs": {
@@ -60,8 +60,6 @@ func TestHandleRequest(t *testing.T) {
 	apiClient := client.New(mockWoltAPI.URL+"/", 10*time.Second)
 	apiClient.BaseURL = mockWoltAPI.URL + "/"
 	handler := NewDeliveryHandler(apiClient)
-
-	// Run test cases
 
 	t.Run("1. Happy Path: Valid Request", func(t *testing.T) {
 		// User location matches venue location (Helsinki), distance = 0

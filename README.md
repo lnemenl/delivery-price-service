@@ -1,66 +1,105 @@
 # Delivery Price Service
 
-A Go microservice that calculates delivery fees based on user location and cart value.
+A Go microservice that calculates delivery fees. It takes a user's location and cart value, asks an external API for the specific venue's rules, and returns the total price.
 
-## Features
+## Prerequisites
 
-- **Concurrent Data Fetching**: Retrieves static (location) and dynamic (pricing) data in parallel using `errgroup` for efficient error handling and request cancellation.
-- **Geodetic Accuracy**: Uses the Haversine formula for precise distance calculations.
-- **Robust Error Handling**: Distinguishes between client input errors (400) and system failures (500).
-- **Production Ready**: Configured with strict timeouts and clean separation of concerns.
+- **Go 1.25** or later
 
-## Design Decisions
+## Getting Started
 
-### Concurrency
-I chose `errgroup` over `sync.WaitGroup` to orchestrate parallel API requests. This ensures that if the Static API call fails, the Dynamic API call is automatically canceled to save resources, and the first error is effectively propagated up the stack.
+### 1. Run the Service
+You can run the server directly. It starts on port `8000`.
 
-### Testing
-The project uses `httptest.NewServer` to mock external dependencies. This allows for:
-- Offline testing
-- Deterministic results
-- Simulation of edge cases (e.g., API returning 404 or malformed JSON)
-
-## Running the Service
-
-### Prerequisites
-- Go 1.25 or higher
-
-### Start Server
 ```bash
 go run .
 ```
-The server starts on port `8000`.
 
-### API Usage
+### 2. Configuration
+You can change settings using **command-line flags** or **environment variables**.
+(Command-line flags always overwrite environment variables).
+**Command-line Flags > Environment Variables > Default Values**
 
+```bash
+# Example: Change the port and set a 5-second timeout
+go run . -port :9090 -timeout 5s
+```
+
+| Flag | Description |
+|------|-------------|
+| `-port` | Which port to listen on (Default: `:8000`) |
+| `-base-url` | The external API address to get venue data (Default: `https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/`) |
+| `-timeout` | How long to wait for the external API before giving up (Default: `10s`) |
+
+## Design & Architecture
+
+### Why I organized the code this way
+I split the code into specific layers so that every file has exactly one job.
+
+* **The Server Layer (`server/`)**: This is the "Front Desk". It handles the internet traffic (HTTP) and checks if the user sent valid data (like ensuring the cart value is positive). It **does not** do any complex calculations.
+* **The Service Layer (`service/`)**: This is the "Calculator". It contains the math logic. It takes inputs (distance, price) and returns the result.
+* **The Client Layer (`client/`)**: This is the "Messenger". It knows how to talk to the external API.
+* **The Models Layer (`models/`)**: Defines the data structures.
+
+### Safe to add new features
+Inside the `server/` directory, I separated the **Routing** (`endpoints.go`) from the **Logic** (`handler_delivery.go`).
+
+**Why I did this:**
+If I want to add a new feature later (like `GET /something-else`):
+1.  I create a **new** handler file (e.g., `handler_time.go`).
+2.  I wire it up in the configuration files (`handlers.go`, `endpoints.go`, `main.go`).
+3.  **Crucially, I do not open or touch the existing `handler_delivery.go` file.**
+This guarantees that adding a new feature cannot accidentally break the existing delivery price logic.
+
+### Handling high traffic
+This service is designed to be **Stateless**. This simply means the server has no "memory" of previous requests.
+
+* **How it works:** When a request comes in, the server calculates the price and immediately forgets everything. It doesn't save user data in a variable or a file.
+* **Why it helps:** Because the server doesn't need to remember anything, you can simply run multiple copies of this program at the same time to handle more traffic. Since they don't share memory, they won't confuse one user's order with another's.
+
+### Concurrency
+To get the price, I need two pieces of information from the external API: **Location** and **Pricing Rules**.
+Instead of fetching them one by one which is slow, I used `errgroup` to fetch them **both at the same time**.
+
+**Why it's safer:** `errgroup` connects these two tasks. If the "Location" request fails, the code automatically cancels the "Pricing" request immediately to save resources.
+
+## Testing & Safety
+
+### How to Run Tests
+The project includes unit tests for business logic and integration tests that mock the external API to ensure reliability without network dependencies.
+```bash
+go test ./...
+```
+
+For manual testing scenarios, see [MANUAL_TESTS.md](MANUAL_TESTS.md).
+
+### Why "Race Conditions" are impossible here
+A "Race Condition" happens when two parts of the code try to change the same variable at the exact same time, causing crashes.
+
+This code is **Thread-Safe** because:
+1.  **Isolation:** Every time a user sends a request, the code creates a brand new, empty set of variables just for that user.
+2.  **No Globals:** I avoided using global variables that are shared across the whole application.
+3.  **Safe Parallelism:** When I fetch data in parallel, I assign the results to two completely different variables, so they never fight over the same memory space.
+
+## API Reference
+
+### Get Delivery Price
 **Endpoint:** `GET /api/v1/delivery-order-price`
-
-| Parameter    | Description                                                  |
-|--------------|--------------------------------------------------------------|
-| `venue_slug` | The ID of the venue                                          |
-| `cart_value` | Value of the cart in cents                                   |
-| `user_lat`   | User's latitude                                              |
-| `user_lon`   | User's longitude                                             |
 
 **Example Request:**
 ```bash
 curl "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignment-venue-helsinki&cart_value=1000&user_lat=60.17094&user_lon=24.93087"
 ```
 
-## Testing
+**Status Codes**
+- `200 OK`: Successful calculation.
+- `400 Bad Request`: Invalid input (e.g., negative cart value) or delivery distance too long.
+- `404 Not Found`: Venue slug does not exist.
+- `502 Bad Gateway`: External API returned invalid or incomplete venue data.
+- `500 Internal Server Error`: External API failure or data parsing error.
 
-### Unit Tests
-Run the comprehensive test suite (including mocked API calls):
-```bash
-go test ./...
-```
-
-### Manual Verification
-See [MANUAL_TESTS.md](MANUAL_TESTS.md) for a list of curl commands to test happy paths, edge cases, and error handling against a running server.
-
-## Project Structure
-
-- `client/`: External API interaction.
-- `models/`: Shared data structures.
-- `server/`: HTTP handler and routing.
-- `service/`: Core logic (distance math, price calculation).
+### Project Folders
+* `client/`: Talks to the outside world (API).
+* `models/`: Defines what the data looks like (JSON).
+* `server/`: Handles the incoming HTTP requests.
+* `service/`: Calculations.

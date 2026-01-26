@@ -13,16 +13,13 @@ import (
 	"github.com/lnemenl/delivery-price-service/models"
 )
 
-// When the external API responds with 404
 var ErrVenueNotFound = errors.New("venue not found")
 
-// APIClient holds the configuration for connecting to Wolt
 type APIClient struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
 
-// New creates an API client with a 10-second timeout
 func New(baseURL string, timeout time.Duration) *APIClient {
 	return &APIClient{
 		BaseURL: baseURL,
@@ -43,9 +40,7 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 		dynamic models.VenueDynamic
 	)
 
-	// Fetch Static Data
 	errg.Go(func() error {
-		// Use groupCtx so this request is canceled if the other one fails
 		urlStatic := fmt.Sprintf("%s%s/static", c.BaseURL, slug)
 		if err := c.get(groupCtx, urlStatic, &static); err != nil {
 			return fmt.Errorf("static data error: %w", err)
@@ -53,7 +48,6 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 		return nil
 	})
 
-	// Fetch Dynamic Data
 	errg.Go(func() error {
 		urlDynamic := fmt.Sprintf("%s%s/dynamic", c.BaseURL, slug)
 		if err := c.get(groupCtx, urlDynamic, &dynamic); err != nil {
@@ -86,16 +80,13 @@ func (c *APIClient) get(ctx context.Context, url string, target any) error {
 	}
 	defer resp.Body.Close()
 
-	// Check Status Code
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
-			// Wrap error
 			return fmt.Errorf("API 404: %w", ErrVenueNotFound)
 		}
 		return fmt.Errorf("API returned status: %d", resp.StatusCode)
 	}
 
-	// Decode JSON into the target struct
 	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
 		return fmt.Errorf("failed to decode JSON: %w", err)
 	}

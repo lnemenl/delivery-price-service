@@ -29,52 +29,38 @@ func (h *DeliveryHandler) HandleRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Parse and validate input parameters
 	venueSlug, deliveryInput, err := parseInput(r)
 	if err != nil {
-		// Return 400 Bad Request for invalid input
 		http.Error(w, fmt.Sprintf("Invalid input: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// Fetch venue data from the API
 	staticData, dynamicData, err := h.client.FetchVenueData(r.Context(), venueSlug)
 	if err != nil {
-		// Map 404 errors to Not Found response
 		if errors.Is(err, client.ErrVenueNotFound) {
 			http.Error(w, "Venue not found", http.StatusNotFound)
 			return
 		}
-
-		// Return 500 for other API errors
 		http.Error(w, fmt.Sprintf("Failed to fetch venue data: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Calculate delivery price
 	priceResponse, err := service.CalculatePrice(deliveryInput, staticData, dynamicData)
 	if err != nil {
-		// Use errors.Is to check for specific errors
 		if errors.Is(err, service.ErrDistanceTooLong) || errors.Is(err, service.ErrNoRangeFound) {
-			// Return 400 with a specific message for distance issues
 			http.Error(w, fmt.Sprintf("Delivery not possible: %v", err), http.StatusBadRequest)
 			return
 		}
-		// If the venue data itself is invalid (missing coordinates),
-		// that's an external dependency failure (500)
-		// not a user input error (400)
 		if errors.Is(err, service.ErrInvalidVenueData) {
 			http.Error(w, fmt.Sprintf("Upstream data error: %v", err), http.StatusBadGateway)
 			return
 		}
-		// Return 400 Bad Request for other calculation errors (like missing data)
 		http.Error(w, fmt.Sprintf("Calculation error: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	// Send JSON response
 	w.Header().Set("Content-Type", "application/json")
-	// Encode the response struct to JSON
 	if err := json.NewEncoder(w).Encode(priceResponse); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}

@@ -12,22 +12,15 @@ import (
 func main() {
 
 	cfg := LoadConfig()
-
-	// Initialize the API Client with a 10-second timeout
 	apiClient := client.New(cfg.BaseURL, cfg.Timeout)
-
-	// Initialize handlers and inject dependencies
 	handlers := &server.Handlers{
 		Delivery: server.NewDeliveryHandler(apiClient),
 	}
-
-	// Initialize a new ServeMux to isolate routes
 	mux := http.NewServeMux()
 
 	router := server.NewRouter(mux, handlers)
 	router.Setup()
 
-	// Configure the server with timeouts to ensure reliability
 	srv := &http.Server{
 		Addr:         cfg.Port,
 		Handler:      mux,
@@ -35,10 +28,9 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	// Start the server
 	log.Printf("Server starting on port %s...", cfg.Port)
 
-	// ListenAndServe blocks forever; if it returns, something went wrong
+	// ListenAndServe blocks forever. If it returns, something went wrong
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
