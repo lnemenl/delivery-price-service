@@ -17,7 +17,7 @@ func TestFetchVenueData(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Handle requests for static venue data
-		if r.URL.Path == "/test-venue/static" {
+		if strings.Contains(r.URL.Path, "/test-venue/static") {
 			w.WriteHeader(http.StatusOK)
 			// Return venue location coordinates
 			w.Write([]byte(`{
@@ -31,7 +31,7 @@ func TestFetchVenueData(t *testing.T) {
 		}
 
 		// Handle requests for dynamic pricing data
-		if r.URL.Path == "/test-venue/dynamic" {
+		if strings.Contains(r.URL.Path, "/test-venue/dynamic") {
 			w.WriteHeader(http.StatusOK)
 			// Return pricing and delivery specifications
 			w.Write([]byte(`{
@@ -109,4 +109,49 @@ func TestFetchVenueData(t *testing.T) {
 			t.Errorf("Expected error to be about static or dynamic data, got %q", actualError)
 		}
 	})
+}
+
+func TestFetchVenueData_Cancellation(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Scenario 1: The "Static" endpoint fails immediately.
+		if strings.Contains(r.URL.Path, "/static") {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Scenario 2: The "Dynamic" endpoint is slow.
+		if strings.Contains(r.URL.Path, "/dynamic") {
+			// Wait for one of two things to happen:
+			select {
+			// 1: The "Slow" Path
+			case <-time.After(2 * time.Second):
+				w.WriteHeader(http.StatusOK)
+				// 2: The "Cancel" path
+			case <-r.Context().Done():
+				return
+			}
+			return
+		}
+	}))
+	defer mockServer.Close()
+
+	client := New(mockServer.URL+"/", 10*time.Second)
+	client.BaseURL = mockServer.URL + "/"
+
+	// Start a stopwatch
+	start := time.Now()
+	_, _, err := client.FetchVenueData(context.Background(), "test-venue")
+	elapsed := time.Since(start)
+
+	if err == nil {
+		t.Fatal("Expected an error (500), but got success")
+	}
+
+	// If it took < 100ms, it means successfully cancelled request
+	if elapsed > 100*time.Millisecond {
+		t.Errorf("Fail: Test took %v. Cancellation is broken.", elapsed)
+	} else {
+		t.Logf("Success: Test took %v. Cancellation worked!", elapsed)
+	}
 }
