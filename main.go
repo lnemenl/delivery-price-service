@@ -16,13 +16,15 @@ func main() {
 	// Initialize the API Client with a 10-second timeout
 	apiClient := client.New(cfg.BaseURL, cfg.Timeout)
 
-	// Initialize the handler and inject the API client
-	priceHandler := server.New(apiClient)
+	// Initialize handlers and inject dependencies
+	handlers := &server.Handlers{
+		Delivery: server.NewDeliveryHandler(apiClient),
+	}
 
 	// Initialize a new ServeMux to isolate routes
 	mux := http.NewServeMux()
 
-	router := server.NewRouter(mux, priceHandler)
+	router := server.NewRouter(mux, handlers)
 	router.Setup()
 
 	// Configure the server with timeouts to ensure reliability

@@ -11,18 +11,18 @@ import (
 	"github.com/lnemenl/delivery-price-service/service"
 )
 
-// PriceHandler holds the dependencies needed to process a request
-type PriceHandler struct {
+// DeliveryHandler holds the dependencies needed to process a request
+type DeliveryHandler struct {
 	client *client.APIClient
 }
 
-// New creates a new handler instance
-func New(c *client.APIClient) *PriceHandler {
-	return &PriceHandler{client: c}
+// NewDeliveryHandler creates a new handler instance
+func NewDeliveryHandler(c *client.APIClient) *DeliveryHandler {
+	return &DeliveryHandler{client: c}
 }
 
 // HandleRequest is the main entry point for the HTTP traffic
-func (h *PriceHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
+func (h *DeliveryHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	// Only allow GET requests
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

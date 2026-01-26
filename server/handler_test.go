@@ -59,7 +59,7 @@ func TestHandleRequest(t *testing.T) {
 	// Create handler instance with mock API client
 	apiClient := client.New(mockWoltAPI.URL+"/", 10*time.Second)
 	apiClient.BaseURL = mockWoltAPI.URL + "/"
-	handler := New(apiClient)
+	handler := NewDeliveryHandler(apiClient)
 
 	// Run test cases
 
