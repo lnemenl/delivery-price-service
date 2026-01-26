@@ -36,7 +36,7 @@ func New(baseURL string, timeout time.Duration) *APIClient {
 func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.VenueStatic, models.VenueDynamic, error) {
 	// Create an errgroup derived from the parent context.
 	// If one goroutine returns an error, 'groupCtx' will be canceled immediately.
-	g, groupCtx := errgroup.WithContext(ctx)
+	errg, groupCtx := errgroup.WithContext(ctx)
 
 	var (
 		static  models.VenueStatic
@@ -44,7 +44,7 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 	)
 
 	// Fetch Static Data
-	g.Go(func() error {
+	errg.Go(func() error {
 		// Use groupCtx so this request is canceled if the other one fails
 		urlStatic := fmt.Sprintf("%s%s/static", c.BaseURL, slug)
 		if err := c.get(groupCtx, urlStatic, &static); err != nil {
@@ -54,7 +54,7 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 	})
 
 	// Fetch Dynamic Data
-	g.Go(func() error {
+	errg.Go(func() error {
 		urlDynamic := fmt.Sprintf("%s%s/dynamic", c.BaseURL, slug)
 		if err := c.get(groupCtx, urlDynamic, &dynamic); err != nil {
 			return fmt.Errorf("dynamic data error: %w", err)
@@ -64,7 +64,7 @@ func (c *APIClient) FetchVenueData(ctx context.Context, slug string) (models.Ven
 
 	// Wait blocks until all goroutines function have returned.
 	// It returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
+	if err := errg.Wait(); err != nil {
 		return models.VenueStatic{}, models.VenueDynamic{}, err
 	}
 
