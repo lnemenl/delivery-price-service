@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -87,8 +88,15 @@ func (c *APIClient) get(ctx context.Context, url string, target any) error {
 		return fmt.Errorf("API returned status: %d", resp.StatusCode)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
-		return fmt.Errorf("failed to decode JSON: %w", err)
+	// Limit the response body to 10MB to prevent potential OOM attacks
+	const maxBodySize = 10 * 1024 * 1024
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if err := json.Unmarshal(bodyBytes, target); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
 	return nil
