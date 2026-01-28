@@ -62,15 +62,12 @@ func TestFetchVenueData(t *testing.T) {
 		// Override base URL to point to local mock server
 		api.BaseURL = mockServer.URL + "/"
 
-		// Call FetchVenueData
 		static, dynamic, err := api.FetchVenueData(context.Background(), "test-venue")
 
-		// Verify both static and dynamic data are correctly decoded
 		if err != nil {
 			t.Fatalf("Expected success, but got error: %v", err)
 		}
 
-		// Verify static data coordinates
 		if len(static.VenueRaw.Location.Coordinates) != 2 {
 			t.Errorf("Expected 2 coordinates, got %d", len(static.VenueRaw.Location.Coordinates))
 		}
@@ -78,7 +75,6 @@ func TestFetchVenueData(t *testing.T) {
 			t.Errorf("Expected lon 24.93, got %f", static.VenueRaw.Location.Coordinates[0])
 		}
 
-		// Verify dynamic data pricing
 		if dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice != 190 {
 			t.Errorf("Expected base price 190, got %d", dynamic.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice)
 		}
