@@ -163,6 +163,9 @@ func newDynamicVenueWithPricing(minOrder int, basePrice int) models.VenueDynamic
 	var v models.VenueDynamic
 	v.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = minOrder
 	v.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = basePrice
+	v.VenueRaw.DeliverySpecs.DeliveryPricing.DistanceRanges = []models.DistanceRange{
+		{Min: 0, Max: 0, A: 0, B: 0},
+	}
 	return v
 }
 
@@ -188,6 +191,13 @@ func TestMergeToVenueInfo(t *testing.T) {
 		{
 			name:    "Failure: Only one coordinate",
 			static:  newStaticVenueWithSingleCoord(10.0),
+			dynamic: models.VenueDynamic{},
+			wantErr: ErrInvalidVenueData,
+		},
+		{
+			name:   "Failure: Missing distance ranges",
+			static: newStaticVenueWithLocation(10.0, 20.0),
+			// Venue with empty pricing rules
 			dynamic: models.VenueDynamic{},
 			wantErr: ErrInvalidVenueData,
 		},

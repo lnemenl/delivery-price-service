@@ -30,6 +30,10 @@ func MergeToVenueInfo(static models.VenueStatic, dynamic models.VenueDynamic) (V
 		return VenueInfo{}, fmt.Errorf("%w: expected 2 coordinates, got %d", ErrInvalidVenueData, len(venueCoords))
 	}
 	pricing := dynamic.VenueRaw.DeliverySpecs.DeliveryPricing
+	if len(pricing.DistanceRanges) == 0 {
+		return VenueInfo{}, fmt.Errorf("%w: missing distance ranges", ErrInvalidVenueData)
+	}
+
 	minOrder := dynamic.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge
 
 	return VenueInfo{
