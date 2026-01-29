@@ -18,23 +18,38 @@ type DeliveryInput struct {
 	UserLon   float64
 }
 
-func CalculatePrice(input DeliveryInput, static models.VenueStatic, dynamic models.VenueDynamic) (models.PriceResponse, error) {
+type VenueInfo struct {
+	Coordinates [2]float64
+	Pricing     models.DeliveryPricing
+	MinOrder    int
+}
+
+func MergeToVenueInfo(static models.VenueStatic, dynamic models.VenueDynamic) (VenueInfo, error) {
 	venueCoords := static.VenueRaw.Location.Coordinates
 	if len(venueCoords) < 2 {
-		return models.PriceResponse{}, fmt.Errorf("%w: expected 2 coordinates, got %d", ErrInvalidVenueData, len(venueCoords))
+		return VenueInfo{}, fmt.Errorf("%w: expected 2 coordinates, got %d", ErrInvalidVenueData, len(venueCoords))
 	}
-	distance := calculateDistance(input.UserLat, input.UserLon, [2]float64{venueCoords[0], venueCoords[1]})
-
 	pricing := dynamic.VenueRaw.DeliverySpecs.DeliveryPricing
-	fee, err := calculateFee(distance, pricing)
+	minOrder := dynamic.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge
+
+	return VenueInfo{
+		Coordinates: [2]float64{venueCoords[0], venueCoords[1]},
+		Pricing:     pricing,
+		MinOrder:    minOrder,
+	}, nil
+}
+
+func CalculatePrice(input DeliveryInput, venue VenueInfo) (models.PriceResponse, error) {
+	distance := calculateDistance(input.UserLat, input.UserLon, venue.Coordinates)
+
+	fee, err := calculateFee(distance, venue.Pricing)
 	if err != nil {
 		return models.PriceResponse{}, err
 	}
 
 	surcharge := 0
-	minOrder := dynamic.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge
-	if input.CartValue < minOrder {
-		surcharge = minOrder - input.CartValue
+	if input.CartValue < venue.MinOrder {
+		surcharge = venue.MinOrder - input.CartValue
 	}
 
 	total := input.CartValue + surcharge + fee

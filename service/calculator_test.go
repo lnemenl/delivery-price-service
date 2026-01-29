@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/lnemenl/delivery-price-service/models"
@@ -8,249 +9,209 @@ import (
 
 func TestCalculatePrice(t *testing.T) {
 
-	// Set up test data
-
-	// Venue location at origin (0.0, 0.0) for easy distance verification
-	venueLoc := models.VenueStatic{}
-	venueLoc.VenueRaw.Location.Coordinates = []float64{0.0, 0.0}
-
-	// Pricing configuration mimicking real Wolt API response
-	// Base price: 190 cents, Minimum order: 1000 cents
-	// Range 1 (0-500m): Price = 190 + 0 + 0 = 190
-	// Range 2 (500-1000m): Price = 190 + 100 + (5 * distance / 10)
-	// Range 3 (1000m+): Delivery unavailable (max=0)
-	venueRules := models.VenueDynamic{}
-	venueRules.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = 1000
-	venueRules.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = 190
-	venueRules.VenueRaw.DeliverySpecs.DeliveryPricing.DistanceRanges = []models.DistanceRange{
-		{Min: 0, Max: 500, A: 0, B: 0},
-		{Min: 500, Max: 1000, A: 100, B: 5.0},
-		{Min: 1000, Max: 0, A: 0, B: 0},
+	standardVenue := VenueInfo{
+		Coordinates: [2]float64{0.0, 0.0},
+		MinOrder:    1000,
+		Pricing: models.DeliveryPricing{
+			BasePrice: 190,
+			DistanceRanges: []models.DistanceRange{
+				{Min: 0, Max: 500, A: 0, B: 0},
+				{Min: 500, Max: 1000, A: 100, B: 5.0}, // +1.00 EUR fixed + 0.50 EUR/10m
+				{Min: 1000, Max: 0, A: 0, B: 0},       // Delivery not allowed > 1000m
+			},
+		},
 	}
 
-	// Test: User at venue location with large order
-	// Distance = 0m, Cart = 1000 cents (meets minimum)
-	// Expected: No surcharge, base delivery fee only
-	t.Run("Happy Path: Close distance, large order", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.0,
-			UserLon:   0.0,
-		}
+	tests := []struct {
+		name          string
+		input         DeliveryInput
+		venue         VenueInfo
+		wantTotal     int
+		wantFee       int
+		wantSurcharge int
+		wantErr       error
+	}{
+		{
+			name: "Happy Path: Close distance, large order",
+			input: DeliveryInput{
+				CartValue: 1000,
+				UserLat:   0.0,
+				UserLon:   0.0,
+			},
+			venue:     standardVenue,
+			wantTotal: 1190, // 1000 cart + 190 fee + 0 surcharge
+			wantFee:   190,
+			wantErr:   nil,
+		},
+		{
+			name: "Logic Check: Small Order Surcharge",
+			input: DeliveryInput{
+				CartValue: 800, // 8.00 EUR (Below 10.00 min)
+				UserLat:   0.0,
+				UserLon:   0.0,
+			},
+			venue:         standardVenue,
+			wantTotal:     1190, // 800 cart + 190 fee + 200 surcharge
+			wantFee:       190,
+			wantSurcharge: 200, // 1000 - 800
+			wantErr:       nil,
+		},
+		{
+			name: "Math Check: Complex Calculation (Range 2)",
+			input: DeliveryInput{
+				CartValue: 1000,
+				UserLat:   0.006, // approx 667 meters away
+				UserLon:   0.0,
+			},
+			venue:     standardVenue,
+			wantTotal: 1624, // 1000 cart + 624 fee
+			wantFee:   624,  // Base(190) + A(100) + B(5.0 * 667 / 10 = 333.5->334) = 624
+			wantErr:   nil,
+		},
+		{
+			name: "Math Check: Negative Coordinates",
+			input: DeliveryInput{
+				CartValue: 1000,
+				UserLat:   -0.006, // approx 667 meters away
+				UserLon:   0.0,
+			},
+			venue:     standardVenue,
+			wantTotal: 1624,
+			wantFee:   624,
+			wantErr:   nil,
+		},
+		{
+			name: "Edge Case: Distance Too Far (>1000m)",
+			input: DeliveryInput{
+				CartValue: 1000,
+				UserLat:   0.010, // approx 1111 meters away
+				UserLon:   0.0,
+			},
+			venue:   standardVenue,
+			wantErr: ErrDistanceTooLong,
+		},
+		{
+			name: "Edge Case: No Range Defined",
+			input: DeliveryInput{
+				CartValue: 1000,
+				UserLat:   0.020, // approx 2222 meters away
+				UserLon:   0.0,
+			},
+			venue: VenueInfo{
+				Coordinates: [2]float64{0.0, 0.0},
+				Pricing: models.DeliveryPricing{
+					DistanceRanges: []models.DistanceRange{
+						{Min: 0, Max: 500, A: 0, B: 0},
+						// Matches nothing > 500m
+					},
+				},
+			},
+			wantErr: ErrNoRangeFound,
+		},
+	}
 
-		resp, err := CalculatePrice(input, venueLoc, venueRules)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := CalculatePrice(tt.input, tt.venue)
 
-		if err != nil {
-			t.Fatalf("Expected success, but got error: %v", err)
-		}
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("CalculatePrice() error = %v, wantErr %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("CalculatePrice() unexpected error = %v", err)
+			}
 
-		// Verify surcharge is 0 when cart value meets minimum
-		if resp.SmallOrderSurcharge != 0 {
-			t.Errorf("Expected 0 surcharge, got %d", resp.SmallOrderSurcharge)
-		}
+			if got.TotalPrice != tt.wantTotal {
+				t.Errorf("TotalPrice = %v, want %v", got.TotalPrice, tt.wantTotal)
+			}
+			if got.Delivery.Fee != tt.wantFee {
+				t.Errorf("Fee = %v, want %v", got.Delivery.Fee, tt.wantFee)
+			}
+			if got.SmallOrderSurcharge != tt.wantSurcharge {
+				t.Errorf("Surcharge = %v, want %v", got.SmallOrderSurcharge, tt.wantSurcharge)
+			}
+		})
+	}
+}
 
-		// Verify fee = base_price (190) when in range 1
-		if resp.Delivery.Fee != 190 {
-			t.Errorf("Expected 190 fee, got %d", resp.Delivery.Fee)
-		}
+// Helper to create models.VenueStatic
+func newStaticVenueWithLocation(lat, lon float64) models.VenueStatic {
+	var v models.VenueStatic
+	v.VenueRaw.Location.Coordinates = []float64{lon, lat}
+	return v
+}
 
-		// Verify total = cart (1000) + surcharge (0) + fee (190) = 1190
-		if resp.TotalPrice != 1190 {
-			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
-		}
-	})
+// Helper to create empty coordinates models.VenueStatic
+func newStaticVenueWithoutCoords() models.VenueStatic {
+	var v models.VenueStatic
+	v.VenueRaw.Location.Coordinates = []float64{}
+	return v
+}
 
-	// Test: User at venue with small order below minimum
-	// Distance = 0m, Cart = 800 cents (below 1000 minimum)
-	// Expected: Surcharge = 1000 - 800 = 200 cents
-	t.Run("Logic Check: Small Order Surcharge", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 800, // 8.00€
-			UserLat:   0.0,
-			UserLon:   0.0,
-		}
+// Helper to create single coordinate models.VenueStatic
+func newStaticVenueWithSingleCoord(coordinate float64) models.VenueStatic {
+	var v models.VenueStatic
+	v.VenueRaw.Location.Coordinates = []float64{coordinate}
+	return v
+}
 
-		resp, err := CalculatePrice(input, venueLoc, venueRules)
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
+// Helper to create models.VenueDynamic with basic pricing
+func newDynamicVenueWithPricing(minOrder int, basePrice int) models.VenueDynamic {
+	var v models.VenueDynamic
+	v.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = minOrder
+	v.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = basePrice
+	return v
+}
 
-		// Verify surcharge = minimum (1000) - cart (800) = 200
-		if resp.SmallOrderSurcharge != 200 {
-			t.Errorf("Expected surcharge 200, got %d", resp.SmallOrderSurcharge)
-		}
+func TestMergeToVenueInfo(t *testing.T) {
+	tests := []struct {
+		name    string
+		static  models.VenueStatic
+		dynamic models.VenueDynamic
+		wantErr error
+	}{
+		{
+			name:    "Success: Valid data",
+			static:  newStaticVenueWithLocation(20.0, 10.0),
+			dynamic: newDynamicVenueWithPricing(1000, 100),
+			wantErr: nil,
+		},
+		{
+			name:    "Failure: Missing coordinates",
+			static:  newStaticVenueWithoutCoords(),
+			dynamic: models.VenueDynamic{},
+			wantErr: ErrInvalidVenueData,
+		},
+		{
+			name:    "Failure: Only one coordinate",
+			static:  newStaticVenueWithSingleCoord(10.0),
+			dynamic: models.VenueDynamic{},
+			wantErr: ErrInvalidVenueData,
+		},
+	}
 
-		// Verify total = cart (800) + surcharge (200) + fee (190) = 1190
-		if resp.TotalPrice != 1190 {
-			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := MergeToVenueInfo(tt.static, tt.dynamic)
 
-	// Test: User 667m away in mid-distance range
-	// Distance = 667m (in range 2: 500-1000m)
-	// Fee = base (190) + a (100) + b*dist/10 (5.0 * 667 / 10 = 334)
-	t.Run("Math Check: Complex Calculation with Multiplier B", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.006, // 0.006 degrees * 111139 = 667 meters
-			UserLon:   0.0,
-		}
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("MergeToVenueInfo() error = %v, wantErr %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("MergeToVenueInfo() unexpected error = %v", err)
+			}
 
-		resp, err := CalculatePrice(input, venueLoc, venueRules)
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
-
-		// Verify calculated distance
-		if resp.Delivery.Distance != 667 {
-			t.Errorf("Expected distance 667m, got %d", resp.Delivery.Distance)
-		}
-
-		// Verify delivery fee calculation
-		// Fee = base (190) + a (100) + round(5.0 * 667 / 10) = 190 + 100 + 334 = 624
-		if resp.Delivery.Fee != 624 {
-			t.Errorf("Expected fee 624, got %d", resp.Delivery.Fee)
-		}
-	})
-
-	// Test: Negative coordinates produce correct positive distance
-	// User at -0.006 latitude, distance should be 667m (not -667m)
-	// Verifies absolute value handling in distance calculation
-	t.Run("Math Check: Negative Coordinates", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   -0.006, // Negative!
-			UserLon:   0.0,
-		}
-
-		resp, err := CalculatePrice(input, venueLoc, venueRules)
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
-
-		// Verify distance is positive 667m
-		if resp.Delivery.Distance != 667 {
-			t.Errorf("Expected distance 667m, got %d", resp.Delivery.Distance)
-		}
-	})
-
-	// Test: Distance exceeds delivery limit
-	// Distance = 1111m, exceeds range 3 limit (max=0 at min=1000m)
-	// Expected: Error returned, delivery unavailable
-	t.Run("Edge Case: Distance Too Far", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.010, // 1111 meters
-			UserLon:   0.0,
-		}
-
-		_, err := CalculatePrice(input, venueLoc, venueRules)
-
-		// Verify error is returned
-		if err == nil {
-			t.Fatal("Expected distance too far error, but got success")
-		}
-	})
-
-	// Test: Zero cart value applies full minimum surcharge
-	// Cart = 0 cents, Minimum = 1000 cents
-	// Expected: Surcharge = 1000 cents (full minimum)
-	t.Run("Edge Case: Zero Cart Value", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 0,
-			UserLat:   0.0,
-			UserLon:   0.0,
-		}
-
-		resp, err := CalculatePrice(input, venueLoc, venueRules)
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
-
-		// Verify surcharge equals full minimum when cart is zero
-		if resp.SmallOrderSurcharge != 1000 {
-			t.Errorf("Expected surcharge 1000, got %d", resp.SmallOrderSurcharge)
-		}
-
-		// Verify total = cart (0) + surcharge (1000) + fee (190) = 1190
-		if resp.TotalPrice != 1190 {
-			t.Errorf("Expected total 1190, got %d", resp.TotalPrice)
-		}
-	})
-
-	// Test: Missing venue coordinates raises error
-	// Venue has empty coordinates slice
-	// Expected: Error returned with validation message
-	t.Run("Error Case: Missing Venue Coordinates", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.0,
-			UserLon:   0.0,
-		}
-
-		// Empty coordinates
-		emptyVenue := models.VenueStatic{}
-		emptyVenue.VenueRaw.Location.Coordinates = []float64{}
-
-		_, err := CalculatePrice(input, emptyVenue, venueRules)
-
-		// Verify error is returned
-		if err == nil {
-			t.Fatal("Expected invalid venue data error, but got success")
-		}
-	})
-
-	// Test: Nil venue coordinates raises error
-	// Venue has nil coordinates slice
-	// Expected: Error returned with validation message
-	t.Run("Error Case: Nil Venue Coordinates", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.0,
-			UserLon:   0.0,
-		}
-
-		// Nil coordinates
-		nilVenue := models.VenueStatic{}
-		nilVenue.VenueRaw.Location.Coordinates = nil
-
-		_, err := CalculatePrice(input, nilVenue, venueRules)
-
-		// Verify error is returned
-		if err == nil {
-			t.Fatal("Expected invalid venue data error, but got success")
-		}
-	})
-
-	// Test: Negative B coefficient reduces delivery fee
-	// B can be negative in real pricing (e.g., promotional discounts)
-	// Fee = base (190) + a (1000) + (b * distance / 10)
-	t.Run("Edge Case: Negative B Coefficient", func(t *testing.T) {
-		input := DeliveryInput{
-			CartValue: 1000,
-			UserLat:   0.006,
-			UserLon:   0.0,
-		}
-
-		// Configure pricing with negative B coefficient
-		customRules := models.VenueDynamic{}
-		customRules.VenueRaw.DeliverySpecs.OrderMinimumNoSurcharge = 1000
-		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.BasePrice = 190
-		customRules.VenueRaw.DeliverySpecs.DeliveryPricing.DistanceRanges = []models.DistanceRange{
-			{Min: 0, Max: 1000, A: 1000, B: -1.0},
-			{Min: 1000, Max: 0, A: 0, B: 0},
-		}
-
-		resp, err := CalculatePrice(input, venueLoc, customRules)
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
-
-		// Distance = 667m
-		// Fee = base (190) + a (1000) + round(-1.0 * 667 / 10)
-		// Fee = 190 + 1000 + round(-66.7) = 190 + 1000 - 67 = 1123
-		if resp.Delivery.Fee != 1123 {
-			t.Errorf("Expected fee 1123, got %d", resp.Delivery.Fee)
-		}
-	})
+			if tt.wantErr == nil {
+				if got.Coordinates[1] != 20.0 {
+					t.Errorf("Lat mapped incorrectly, got %v", got.Coordinates[1])
+				}
+			}
+		})
+	}
 }

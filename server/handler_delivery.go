@@ -45,14 +45,17 @@ func (h *DeliveryHandler) HandleRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	priceResponse, err := service.CalculatePrice(deliveryInput, staticData, dynamicData)
+	venueInfo, err := service.MergeToVenueInfo(staticData, dynamicData)
+	if err != nil {
+		// If merging fails, it's an issue with the upstream data
+		http.Error(w, fmt.Sprintf("Upstream data error: %v", err), http.StatusBadGateway)
+		return
+	}
+
+	priceResponse, err := service.CalculatePrice(deliveryInput, venueInfo)
 	if err != nil {
 		if errors.Is(err, service.ErrDistanceTooLong) || errors.Is(err, service.ErrNoRangeFound) {
 			http.Error(w, fmt.Sprintf("Delivery not possible: %v", err), http.StatusBadRequest)
-			return
-		}
-		if errors.Is(err, service.ErrInvalidVenueData) {
-			http.Error(w, fmt.Sprintf("Upstream data error: %v", err), http.StatusBadGateway)
 			return
 		}
 		http.Error(w, fmt.Sprintf("Calculation error: %v", err), http.StatusBadRequest)

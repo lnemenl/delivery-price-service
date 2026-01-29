@@ -34,7 +34,7 @@ curl "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignme
 curl "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignment-venue-helsinki&cart_value=1000&user_lat=0&user_lon=0"
 ```
 **Expected Response:** HTTP 400
-`Calculation error: delivery distance too long`
+`Delivery not possible: delivery distance too long: 7026040 meters` (Note: exact distance may vary slightly)
 
 ## 4. Venue Not Found (Expected: 404 Not Found)
 **Description:** Requesting a venue that does not exist.
