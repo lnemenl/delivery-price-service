@@ -21,5 +21,5 @@ func (r *Router) Setup() {
 }
 
 func (r *Router) setupDeliveryRoutes() {
-	r.mux.HandleFunc("/api/v1/delivery-order-price", r.handlers.Delivery.HandleRequest)
+	r.mux.HandleFunc("GET /api/v1/delivery-order-price", r.handlers.Delivery.HandleRequest)
 }

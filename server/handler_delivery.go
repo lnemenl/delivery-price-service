@@ -23,12 +23,6 @@ func NewDeliveryHandler(c *client.APIClient) *DeliveryHandler {
 
 // HandleRequest is the main entry point for the HTTP traffic
 func (h *DeliveryHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
-	// Only allow GET requests
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	venueSlug, deliveryInput, err := parseInput(r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Invalid input: %v", err), http.StatusBadRequest)

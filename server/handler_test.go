@@ -61,7 +61,7 @@ func TestHandleRequest(t *testing.T) {
 	apiClient.BaseURL = mockWoltAPI.URL + "/"
 	handler := NewDeliveryHandler(apiClient)
 
-	t.Run("1. Happy Path: Valid Request", func(t *testing.T) {
+	t.Run("Happy Path: Valid Request", func(t *testing.T) {
 		// User location matches venue location (Helsinki), distance = 0
 		url := "/api/v1/delivery-order-price?venue_slug=test-venue&cart_value=1000&user_lat=60.17&user_lon=24.93"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -81,7 +81,7 @@ func TestHandleRequest(t *testing.T) {
 		}
 	})
 
-	t.Run("2. Validation: Missing Parameters", func(t *testing.T) {
+	t.Run("Validation: Missing Parameters", func(t *testing.T) {
 		// Request without venue_slug parameter
 		url := "/api/v1/delivery-order-price?cart_value=1000"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -94,7 +94,7 @@ func TestHandleRequest(t *testing.T) {
 		}
 	})
 
-	t.Run("3. Logic Error: Distance Too Long", func(t *testing.T) {
+	t.Run("Logic Error: Distance Too Long", func(t *testing.T) {
 		// User location far from venue (distance > 1000m), delivery not available
 		url := "/api/v1/delivery-order-price?venue_slug=test-venue&cart_value=1000&user_lat=0.0&user_lon=0.0"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -111,7 +111,7 @@ func TestHandleRequest(t *testing.T) {
 		}
 	})
 
-	t.Run("4. System Error: Wolt API Down", func(t *testing.T) {
+	t.Run("System Error: Wolt API Down", func(t *testing.T) {
 		// Request broken-venue to trigger server error response
 		url := "/api/v1/delivery-order-price?venue_slug=broken-venue&cart_value=1000&user_lat=60.17&user_lon=24.93"
 		req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -122,17 +122,6 @@ func TestHandleRequest(t *testing.T) {
 		// Verify handler returns 500 Internal Server Error
 		if rr.Code != http.StatusInternalServerError {
 			t.Errorf("Expected 500 Internal Error, got %d", rr.Code)
-		}
-	})
-
-	t.Run("5. Method Check: POST Not Allowed", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/delivery-order-price", nil)
-		rr := httptest.NewRecorder()
-
-		handler.HandleRequest(rr, req)
-
-		if rr.Code != http.StatusMethodNotAllowed {
-			t.Errorf("Expected 405, got %d", rr.Code)
 		}
 	})
 

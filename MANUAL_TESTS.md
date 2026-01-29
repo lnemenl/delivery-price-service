@@ -51,3 +51,11 @@ curl "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignme
 ```
 **Expected Response:** HTTP 400
 `Invalid input: missing cart_value`
+
+## 6. Invalid Method (Expected: 405 Method Not Allowed)
+**Description:** Using POST instead of GET.
+```bash
+curl -X POST "http://localhost:8000/api/v1/delivery-order-price?venue_slug=home-assignment-venue-helsinki&cart_value=1000&user_lat=60.17&user_lon=24.93"
+```
+**Expected Response:** HTTP 405
+`Method Not Allowed`
